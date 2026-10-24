@@ -1,0 +1,10 @@
+[
+ { "displayName": "Priya", "team": "lagoon", "color": "#b9df74", "home": "hack_a" },
+ { "displayName": "Marcus", "team": "lagoon", "color": "#b9df74", "home": "hack_a" },
+ { "displayName": "Yuki", "team": "lagoon", "color": "#b9df74", "home": "food" },
+ { "displayName": "Dani", "team": "rotunda", "color": "#75bcff", "home": "hack_b" },
+ { "displayName": "Tom", "team": "rotunda", "color": "#75bcff", "home": "mezz_hack" },
+ { "displayName": "Ife", "team": "colonnade", "color": "#e7ac66", "home": "robotics" },
+ { "displayName": "Sam", "team": "colonnade", "color": "#e7ac66", "home": "hardware" },
+ { "displayName": "Lena", "team": "", "color": "#a7a5f9", "home": "workshops" }
+]

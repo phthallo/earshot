@@ -1,0 +1,22 @@
+{
+ "comment": "Zone attraction weights by hour of day (PDT). Missing hours fall back to 'default'. Used only by the mock replayer.",
+ "default": {
+  "hack_a": 5, "hack_b": 4, "mezz_hack": 3, "workshops": 1, "mentors": 1, "food": 1,
+  "robotics": 1, "mixers": 1, "sleep": 0.5, "theater": 0.3, "checkin": 0.5, "mezz_relax": 1, "hardware": 0.5, "stage": 0.3
+ },
+ "hours": {
+  "8":  { "food": 5, "checkin": 2 },
+  "9":  { "stage": 4, "food": 2 },
+  "12": { "food": 6 },
+  "13": { "food": 4, "workshops": 3 },
+  "14": { "workshops": 3, "mentors": 2 },
+  "18": { "food": 6, "mixers": 2 },
+  "19": { "mixers": 4, "food": 3 },
+  "0":  { "sleep": 4, "hack_a": 4, "hack_b": 3 },
+  "1":  { "sleep": 5, "hack_a": 3 },
+  "2":  { "sleep": 6, "hack_a": 3, "hack_b": 2 },
+  "3":  { "sleep": 6, "hack_a": 2, "hack_b": 2 },
+  "4":  { "sleep": 6, "hack_a": 2 },
+  "5":  { "sleep": 5, "hack_a": 2 }
+ }
+}

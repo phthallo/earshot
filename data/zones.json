@@ -1,0 +1,128 @@
+[
+ {
+  "zoneId": "stage",
+  "name": "Main Stage",
+  "kind": "stage",
+  "s0": 0.0,
+  "s1": 0.12,
+  "floor": 1,
+  "capacity": 400
+ },
+ {
+  "zoneId": "hack_a",
+  "name": "Hacking Floor A",
+  "kind": "hack",
+  "s0": 0.12,
+  "s1": 0.3,
+  "floor": 1,
+  "capacity": 500
+ },
+ {
+  "zoneId": "workshops",
+  "name": "Workshop Rooms",
+  "kind": "workshop",
+  "s0": 0.3,
+  "s1": 0.4,
+  "floor": 1,
+  "capacity": 120
+ },
+ {
+  "zoneId": "mentors",
+  "name": "Mentor Tables",
+  "kind": "workshop",
+  "s0": 0.4,
+  "s1": 0.45,
+  "floor": 1,
+  "capacity": 60
+ },
+ {
+  "zoneId": "food",
+  "name": "Food & Swag",
+  "kind": "food",
+  "s0": 0.45,
+  "s1": 0.55,
+  "floor": 1,
+  "capacity": 200
+ },
+ {
+  "zoneId": "hack_b",
+  "name": "Hacking Floor B",
+  "kind": "hack",
+  "s0": 0.55,
+  "s1": 0.64,
+  "floor": 1,
+  "capacity": 300
+ },
+ {
+  "zoneId": "robotics",
+  "name": "Robotics Space",
+  "kind": "hack",
+  "s0": 0.64,
+  "s1": 0.7,
+  "floor": 1,
+  "capacity": 80
+ },
+ {
+  "zoneId": "mixers",
+  "name": "Mixers Area",
+  "kind": "social",
+  "s0": 0.7,
+  "s1": 0.78,
+  "floor": 1,
+  "capacity": 150
+ },
+ {
+  "zoneId": "sleep",
+  "name": "Sleeping Area",
+  "kind": "rest",
+  "s0": 0.78,
+  "s1": 0.84,
+  "floor": 1,
+  "capacity": 200
+ },
+ {
+  "zoneId": "theater",
+  "name": "Theater",
+  "kind": "stage",
+  "s0": 0.84,
+  "s1": 0.93,
+  "floor": 1,
+  "capacity": 150
+ },
+ {
+  "zoneId": "checkin",
+  "name": "Check-in & Info Desk",
+  "kind": "entry",
+  "s0": 0.93,
+  "s1": 1.0,
+  "floor": 1,
+  "capacity": 100
+ },
+ {
+  "zoneId": "mezz_relax",
+  "name": "Relaxation Space",
+  "kind": "rest",
+  "s0": 0.45,
+  "s1": 0.62,
+  "floor": 2,
+  "capacity": 150
+ },
+ {
+  "zoneId": "mezz_hack",
+  "name": "Mezzanine Hacking",
+  "kind": "hack",
+  "s0": 0.62,
+  "s1": 0.86,
+  "floor": 2,
+  "capacity": 300
+ },
+ {
+  "zoneId": "hardware",
+  "name": "Hardware Desk",
+  "kind": "sponsor",
+  "s0": 0.86,
+  "s1": 1.0,
+  "floor": 2,
+  "capacity": 40
+ }
+]

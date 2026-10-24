@@ -1,0 +1,52 @@
+menu "Venuemap"
+
+    config VENUEMAP_NODE_ID
+        int "Node id"
+        default 103
+
+    config VENUEMAP_CHANNEL
+        int "Wifi channel to sniff"
+        range 1 13
+        default 6
+        help
+            Ignored while VENUEMAP_WIFI_SSID is set; the AP picks the channel then.
+
+    config VENUEMAP_MAC_SALT
+        string "MAC hash salt"
+        default "dev-salt"
+        help
+            Must match MAC_SALT on the bridge.
+
+    config VENUEMAP_WIFI_SSID
+        string "Venue wifi SSID (optional)"
+        default ""
+        help
+            Join this AP so CSI frames arrive continuously. Leave empty for sniff only.
+
+    config VENUEMAP_WIFI_PASSWORD
+        string "Venue wifi password"
+        default ""
+
+    config VENUEMAP_LCD
+        bool "LCD1602 over I2C (PCF8574 backpack)"
+        default y
+        help
+            The screen is probed at boot. When nothing answers at the address
+            the node runs without it.
+
+    config VENUEMAP_LCD_ADDR
+        hex "LCD I2C address"
+        depends on VENUEMAP_LCD
+        default 0x27
+
+    config VENUEMAP_LCD_SDA
+        int "LCD SDA GPIO"
+        depends on VENUEMAP_LCD
+        default 21
+
+    config VENUEMAP_LCD_SCL
+        int "LCD SCL GPIO"
+        depends on VENUEMAP_LCD
+        default 22
+
+endmenu

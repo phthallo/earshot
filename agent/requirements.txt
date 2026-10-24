@@ -1,0 +1,3 @@
+uagents>=0.22
+uagents-core>=0.3
+httpx>=0.27

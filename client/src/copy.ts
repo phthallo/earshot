@@ -1,0 +1,117 @@
+// Every string a person reads lives here.
+export const copy = {
+  appName: 'Where everyone is',
+  tagline: 'Cal Hacks 13.0, Palace of Fine Arts',
+
+  nav: {
+    map: 'Map',
+    me: 'Me',
+    team: 'Team',
+    ask: 'Ask',
+    privacy: 'Privacy',
+  },
+
+  floors: { 1: 'Ground floor', 2: 'Mezzanine' } as Record<number, string>,
+
+  legend: {
+    simulated: 'Simulated crowd',
+    live: 'Live count',
+    surveyed: (time: string) => `Surveyed ${time}`,
+    node: 'Seen by a node',
+    app: 'Phone app',
+    you: 'You',
+  },
+
+  map: {
+    connecting: 'Connecting to the venue…',
+    offline: 'Lost the connection. Retrying.',
+    hidden: 'You are hidden from the map.',
+    noPeople: 'Nobody registered is on this floor.',
+    realNode: 'Live node',
+  },
+
+  register: {
+    title: 'Put yourself on the map',
+    intro: 'Register, then let one of the nodes learn your phone. Only people who do this appear by name.',
+    name: 'Name',
+    namePlaceholder: 'Priya',
+    team: 'Team',
+    teamPlaceholder: 'lagoon',
+    color: 'Colour',
+    save: 'Save',
+    saved: 'Saved.',
+    editing: 'Edit details',
+    pairHeading: 'Pair your phone',
+    pairHow: 'Stand next to a live node. Turn wifi off and on when the countdown starts.',
+    pickNode: 'Node',
+    startPairing: 'Start pairing',
+    cancelPairing: 'Cancel',
+    warmup: (s: number) => `Get ready. Toggle wifi in ${s}…`,
+    listening: (s: number) => `Listening, ${s} s left`,
+    paired: 'Paired. You show up on the map when a node sees your phone.',
+    pairFailed: 'No new phone showed up. Toggle wifi and try again.',
+    orType: 'Or type the address',
+    macLabel: 'Wifi address',
+    macPlaceholder: '3a:91:c0:4f:12:8e',
+    macHelp: 'Settings > About phone > Wi-Fi MAC address. Use the address for this network if the phone randomises it.',
+    bindMac: 'Use this address',
+    bound: 'Address saved.',
+    unbind: 'Remove',
+    codeHeading: 'Phone app code',
+    codeHow: 'Type this into the Android app to be tracked anywhere in the building.',
+    codeUnavailable: 'Code appears once the server is up.',
+    visible: 'Show me on the map',
+    deleteAll: 'Delete my data',
+    deleteConfirm: 'Delete your name, team, phone pairing and walks? This cannot be undone.',
+    deleteYes: 'Delete everything',
+    deleteNo: 'Keep my data',
+  },
+
+  team: {
+    title: 'Find my team',
+    none: 'Set a team name on the Me page to see your teammates here.',
+    alone: (team: string) => `You are the only one in ${team} so far.`,
+    lastSeen: 'last seen',
+    notSeen: 'not seen yet',
+    via: { node: 'node', app: 'app' } as Record<string, string>,
+  },
+
+  walk: {
+    title: 'Wifi signature',
+    intro: 'Walk past a live node three times. Each walk is recorded and three synthetic variations are added.',
+    start: 'Start walk',
+    finish: 'Finish walk',
+    cancel: 'Cancel',
+    recording: 'Recording. Walk past the node now.',
+    progress: (real: number, synth: number) => `${real} real, ${synth} synthetic`,
+    match: 'Test a match',
+    matchResult: (name: string, d: number, second: number) => `Closest: ${name} (distance ${d.toFixed(2)}, next ${second.toFixed(2)})`,
+    reset: 'Delete walks',
+    simulatedNote: 'Signature matching is a research feature. One radio cannot identify people from their gait; this shows the pipeline on real walks.',
+  },
+
+  ask: {
+    title: 'Ask the venue',
+    placeholder: 'Where is it quietest right now?',
+    send: 'Ask',
+    thinking: 'Thinking…',
+    speak: 'Speak',
+    stop: 'Stop',
+    listen: 'Read aloud',
+    micDenied: 'Microphone blocked. Allow it in the browser and try again.',
+    examples: ['Where is food least busy?', 'Which hacking floor has room?', 'Is anyone from my team near the stage?'],
+  },
+
+  privacy: {
+    title: 'What this map knows about you',
+    anon: 'If you did not register, this map holds a count per zone and nothing else. Phones are seen as a salted hash that is deleted after 70 seconds.',
+    receipt: 'Get my receipt',
+    loading: 'Writing your receipt…',
+    needRegister: 'Register on the Me page to see what is stored about you.',
+    mock: 'The crowd heat is simulated. Only registered people are tracked from real signals.',
+  },
+
+  errors: {
+    generic: 'Something went wrong. Try again.',
+  },
+};

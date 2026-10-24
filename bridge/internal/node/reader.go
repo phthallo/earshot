@@ -9,7 +9,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"strconv"
 	"time"
 
 	"venuemap/bridge/internal/ingest"
@@ -20,7 +19,13 @@ import (
 type Handler struct {
 	Batch  *ingest.Batcher
 	Client *stdb.Client
-	links  links
+	// Locate receives the access points a node heard (BSSID in MacHash, RSSI),
+	// so a moving node can be placed. Nil when no fingerprints are loaded.
+	Locate func(nodeID int, aps []Sight)
+	// Observe receives every sighting from a real node so unregistered phones
+	// can be drawn as anonymous dots. Nil disables the dots.
+	Observe func(nodeID int, sights []Sight)
+	links   links
 }
 
 func (h *Handler) Handle(ctx context.Context, m Message) {
@@ -37,21 +42,19 @@ func (h *Handler) handle(ctx context.Context, m Message, w io.Writer) {
 	case "motion":
 		h.Batch.Motion(ingest.Motion{NodeID: m.ID, Score: m.Score, State: m.State, PIR: m.PIR == 1, AnonCount: m.Anon})
 	case "sight":
-		items := make([]ingest.Sight, 0, len(m.Items))
-		for _, it := range m.Items {
-			mac, _ := it[0].(string)
-			rssi := 0
-			switch v := it[1].(type) {
-			case float64:
-				rssi = int(v)
-			case string:
-				rssi, _ = strconv.Atoi(v)
-			}
-			if mac != "" {
-				items = append(items, ingest.Sight{MacHash: mac, RSSI: rssi})
-			}
+		sights := m.Sights()
+		items := make([]ingest.Sight, 0, len(sights))
+		for _, s := range sights {
+			items = append(items, ingest.Sight{MacHash: s.MacHash, RSSI: s.RSSI})
 		}
 		h.Batch.Sightings(m.ID, items)
+		if h.Observe != nil && m.ID >= 100 {
+			h.Observe(m.ID, sights)
+		}
+	case "aps":
+		if h.Locate != nil {
+			h.Locate(m.ID, m.Sights())
+		}
 	case "csi":
 		if err := h.Client.Call(ctx, "push_csi", m.ID, m.Amps); err != nil {
 			log.Printf("push_csi: %v", err)
@@ -104,13 +107,18 @@ func (h *Handler) ServeTCP(ctx context.Context, addr string) error {
 // 115200 cannot carry a full sight line (128 hashes) every second.
 const SerialBaud = "921600"
 
-// ReadSerial opens a UART at SerialBaud 8N1 and reads lines, reconnecting on loss.
+// OpenSerial configures port for SerialBaud 8N1 raw and opens it.
+func OpenSerial(ctx context.Context, port string) (*os.File, error) {
+	if err := exec.CommandContext(ctx, "stty", "-F", port, SerialBaud, "raw", "-echo").Run(); err != nil {
+		log.Printf("stty %s: %v", port, err)
+	}
+	return os.OpenFile(port, os.O_RDWR, 0)
+}
+
+// ReadSerial reads lines from a UART, reconnecting on loss.
 func (h *Handler) ReadSerial(ctx context.Context, port string) {
 	for ctx.Err() == nil {
-		if err := exec.CommandContext(ctx, "stty", "-F", port, SerialBaud, "raw", "-echo").Run(); err != nil {
-			log.Printf("stty %s: %v", port, err)
-		}
-		f, err := os.OpenFile(port, os.O_RDWR, 0)
+		f, err := OpenSerial(ctx, port)
 		if err != nil {
 			log.Printf("open %s: %v (retry in 3s)", port, err)
 			time.Sleep(3 * time.Second)

@@ -5,12 +5,16 @@ package venue
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
 	"venuemap/bridge/internal/stdb"
 )
 
+// Coordinates are pixels of the floorplan image (data/nodes.json gives its
+// size and metres per pixel); the client draws in the same space.
 type Node struct {
 	NodeID int     `json:"nodeId"`
 	ZoneID string  `json:"zoneId"`
@@ -18,34 +22,25 @@ type Node struct {
 	Label  string  `json:"label"`
 	X      float64 `json:"x"`
 	Y      float64 `json:"y"`
-	S      float64 `json:"s"`
-}
-
-type Arc struct {
-	CX, CY, R, A0, A1, HalfWidth float64
 }
 
 type Nodes struct {
 	MetersPerUnit float64 `json:"metersPerUnit"`
-	Arc           struct {
-		CX        float64 `json:"cx"`
-		CY        float64 `json:"cy"`
-		R         float64 `json:"r"`
-		A0        float64 `json:"a0"`
-		A1        float64 `json:"a1"`
-		HalfWidth float64 `json:"halfWidth"`
-	} `json:"arc"`
-	Nodes []Node `json:"nodes"`
+	Width         float64 `json:"width"`
+	Height        float64 `json:"height"`
+	Nodes         []Node  `json:"nodes"`
 }
+
+type Point [2]float64
 
 type Zone struct {
 	ZoneID   string  `json:"zoneId"`
 	Name     string  `json:"name"`
 	Kind     string  `json:"kind"`
-	S0       float64 `json:"s0"`
-	S1       float64 `json:"s1"`
 	Floor    int     `json:"floor"`
 	Capacity int     `json:"capacity"`
+	Label    Point   `json:"label"`
+	Poly     []Point `json:"poly"`
 }
 
 type Venue struct {
@@ -107,13 +102,60 @@ func (v *Venue) Seed(ctx context.Context, c *stdb.Client) error {
 	return c.Call(ctx, "seed_nodes", nodes)
 }
 
-// ZoneAt returns the zone covering arc parameter s on a floor.
-func (v *Venue) ZoneAt(s float64, floor int) *Zone {
-	for i := range v.Zones {
-		z := &v.Zones[i]
-		if z.Floor == floor && s >= z.S0 && s < z.S1 {
-			return z
+// MoveNode places a node at the label point of zoneID. The node's sightings
+// and counts are attributed to that zone from the next tick on.
+func (v *Venue) MoveNode(ctx context.Context, c *stdb.Client, nodeID int, zoneID string) error {
+	var n *Node
+	for i := range v.Nodes.Nodes {
+		if v.Nodes.Nodes[i].NodeID == nodeID {
+			n = &v.Nodes.Nodes[i]
 		}
 	}
-	return nil
+	if n == nil {
+		return fmt.Errorf("node %d is not in nodes.json", nodeID)
+	}
+	for _, z := range v.Zones {
+		if z.ZoneID != zoneID {
+			continue
+		}
+		n.ZoneID, n.Floor, n.X, n.Y = z.ZoneID, z.Floor, z.Label[0], z.Label[1]
+		return c.Call(ctx, "seed_nodes", []nodeIn{{n.NodeID, n.ZoneID, n.Label, n.Floor, n.X, n.Y, n.NodeID >= 100}})
+	}
+	return fmt.Errorf("zone %q is not in zones.json", zoneID)
+}
+
+// Contains reports whether p lies inside the zone polygon (even-odd rule).
+func (z *Zone) Contains(p Point) bool {
+	in := false
+	n := len(z.Poly)
+	for i, j := 0, n-1; i < n; j, i = i, i+1 {
+		a, b := z.Poly[i], z.Poly[j]
+		if (a[1] > p[1]) != (b[1] > p[1]) && p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0] {
+			in = !in
+		}
+	}
+	return in
+}
+
+// Bounds returns the axis-aligned box around the zone polygon.
+func (z *Zone) Bounds() (minX, minY, maxX, maxY float64) {
+	minX, minY = math.Inf(1), math.Inf(1)
+	maxX, maxY = math.Inf(-1), math.Inf(-1)
+	for _, p := range z.Poly {
+		minX, maxX = math.Min(minX, p[0]), math.Max(maxX, p[0])
+		minY, maxY = math.Min(minY, p[1]), math.Max(maxY, p[1])
+	}
+	return
+}
+
+// Centroid is the mean of the polygon's vertices, close enough for a label
+// or a walker target.
+func (z *Zone) Centroid() Point {
+	var c Point
+	for _, p := range z.Poly {
+		c[0] += p[0]
+		c[1] += p[1]
+	}
+	n := float64(len(z.Poly))
+	return Point{c[0] / n, c[1] / n}
 }

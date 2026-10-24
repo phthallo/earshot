@@ -153,9 +153,9 @@ func Run(ctx context.Context, o Options) error {
 			win.Add(c, time.Now())
 		case now := <-t.C:
 			best, distinct := win.Drain(now)
-			items := make([][2]any, 0, len(best))
+			items := make([][]any, 0, len(best))
 			for mac, rssi := range best {
-				items = append(items, [2]any{node.HashMAC(o.Salt, mac), rssi})
+				items = append(items, []any{node.HashMAC(o.Salt, mac), rssi, mac})
 			}
 			// Motion from churn: how many phones arrived or left since last second.
 			score := float64(abs(distinct-prevDistinct)) / 5

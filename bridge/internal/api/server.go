@@ -6,13 +6,18 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"venuemap/bridge/internal/anon"
+	"venuemap/bridge/internal/dwell"
 	"venuemap/bridge/internal/fp"
+	"venuemap/bridge/internal/history"
+	"venuemap/bridge/internal/moss"
 	"venuemap/bridge/internal/node"
 	"venuemap/bridge/internal/stdb"
 )
@@ -28,12 +33,16 @@ type Voice interface {
 }
 
 type Server struct {
-	Client *stdb.Client
-	Salt   string
-	Ask    Asker // nil when ANTHROPIC_API_KEY is unset
-	Voice  Voice // nil when CARTESIA_API_KEY is unset
-	FP     *fp.Store
-	Mode   string
+	Client  *stdb.Client
+	Salt    string
+	Ask     Asker          // nil when ANTHROPIC_API_KEY is unset
+	Voice   Voice          // nil when CARTESIA_API_KEY is unset
+	Search  *moss.Client   // nil when MOSS_PROJECT_KEY is unset
+	History *history.Store // nil when TIGER_DSN is unset
+	Dwell   *dwell.Tracker // nil without real nodes
+	Dots    *anon.Tracker  // nil without real nodes
+	FP      *fp.Store
+	Mode    string
 }
 
 var macRe = regexp.MustCompile(`^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$`)
@@ -44,6 +53,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/bind-mac", s.bindMac)
 	mux.HandleFunc("POST /api/ask", s.ask)
 	mux.HandleFunc("GET /api/privacy-receipt", s.receipt)
+	mux.HandleFunc("GET /api/search", s.search)
+	mux.HandleFunc("GET /api/history", s.history)
+	mux.HandleFunc("GET /api/dwell", s.dwell)
+	mux.HandleFunc("GET /api/device", s.device)
 	mux.HandleFunc("POST /api/voice/tts", s.tts)
 	mux.HandleFunc("GET /api/voice/stt", s.stt)
 	mux.HandleFunc("GET /api/pair-code", s.pairCode)
@@ -75,7 +88,104 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, 200, map[string]any{"ok": true, "mode": s.Mode, "ask": s.Ask != nil, "voice": s.Voice != nil})
+	writeJSON(w, 200, map[string]any{"ok": true, "mode": s.Mode, "ask": s.Ask != nil, "voice": s.Voice != nil, "search": s.Search != nil, "history": s.History != nil})
+}
+
+// search is the guide index straight from the client, no Claude in between.
+func (s *Server) search(w http.ResponseWriter, r *http.Request) {
+	if s.Search == nil {
+		writeJSON(w, 503, map[string]string{"error": "Guide search is off. Set MOSS_PROJECT_ID and MOSS_PROJECT_KEY in .env and restart the bridge."})
+		return
+	}
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" || len(q) > 300 {
+		writeJSON(w, 400, map[string]string{"error": "Give q, up to 300 characters."})
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	res, err := s.Search.Query(ctx, q, 5)
+	if err != nil {
+		log.Printf("search: %v", err)
+		writeJSON(w, 502, map[string]string{"error": "Guide search did not answer. Try again."})
+		return
+	}
+	writeJSON(w, 200, res)
+}
+
+// history returns bucketed samples for one zone. Only anonymous numbers.
+func (s *Server) history(w http.ResponseWriter, r *http.Request) {
+	if s.History == nil {
+		writeJSON(w, 503, map[string]string{"error": "Zone history is off. Set TIGER_DSN in .env and restart the bridge."})
+		return
+	}
+	zone := r.URL.Query().Get("zone")
+	if zone == "" {
+		writeJSON(w, 400, map[string]string{"error": "zone is required"})
+		return
+	}
+	hours, _ := strconv.Atoi(r.URL.Query().Get("hours"))
+	window, bucket := history.Window(hours)
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	pts, err := s.History.Recent(ctx, zone, window, bucket)
+	if err != nil {
+		log.Printf("history: %v", err)
+		writeJSON(w, 502, map[string]string{"error": "History did not answer. Try again."})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"zone": zone, "hours": int(window.Hours()), "bucketSeconds": int(bucket.Seconds()), "points": pts})
+}
+
+// dwell returns unique phones, returning phones and typical stay per zone,
+// or for the one zone asked for. Aggregates only, computed in memory.
+func (s *Server) dwell(w http.ResponseWriter, r *http.Request) {
+	if s.Dwell == nil {
+		writeJSON(w, 503, map[string]string{"error": "Dwell statistics need a real sniffer node."})
+		return
+	}
+	if zone := r.URL.Query().Get("zone"); zone != "" {
+		writeJSON(w, 200, s.Dwell.Zone(zone, time.Now()))
+		return
+	}
+	writeJSON(w, 200, s.Dwell.Report(time.Now()))
+}
+
+// device returns everything the bridge holds about one unregistered phone:
+// current sightings from the dot tracker and its day from dwell. The raw MAC
+// only goes to a browser on the bridge host itself (the organiser's laptop);
+// anyone on the venue wifi gets the randomised flag and the hash.
+func (s *Server) device(w http.ResponseWriter, r *http.Request) {
+	hash := r.URL.Query().Get("hash")
+	if s.Dots == nil || hash == "" {
+		writeJSON(w, 404, map[string]string{"error": "No such phone."})
+		return
+	}
+	now := time.Now()
+	d := s.Dots.Device(hash, now)
+	if d == nil {
+		writeJSON(w, 404, map[string]string{"error": "That phone has gone quiet. Pick another dot."})
+		return
+	}
+	var day *dwell.DeviceInfo
+	if s.Dwell != nil {
+		day = s.Dwell.Device(hash)
+	}
+	withheld := false
+	if !isLoopback(r.RemoteAddr) && d.MAC != "" {
+		d.MAC = ""
+		withheld = true
+	}
+	writeJSON(w, 200, map[string]any{"device": d, "day": day, "addressWithheld": withheld})
+}
+
+func isLoopback(remoteAddr string) bool {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 // bindMac hashes a typed-in MAC with the salt and binds it to the caller.

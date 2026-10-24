@@ -22,7 +22,7 @@ type Client struct {
 }
 
 func New(uri, db, token string) *Client {
-	return &Client{URI: strings.TrimRight(uri, "/"), DB: db, Token: token, HTTP: &http.Client{Timeout: 15 * time.Second}}
+	return &Client{URI: strings.TrimRight(uri, "/"), DB: db, Token: token, HTTP: &http.Client{Timeout: 45 * time.Second}}
 }
 
 // Mint creates a fresh identity and returns its token.

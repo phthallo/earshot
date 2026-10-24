@@ -9,11 +9,15 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 
+	"venuemap/bridge/internal/dwell"
+	"venuemap/bridge/internal/history"
+	"venuemap/bridge/internal/moss"
 	"venuemap/bridge/internal/stdb"
 )
 
@@ -60,6 +64,11 @@ type Asker struct {
 	db     *stdb.Client
 	client anthropic.Client
 	model  string
+	// Optional. Search adds the guide tool, History the zone_history tool,
+	// Dwell the zone_dwell tool.
+	Search  *moss.Client
+	History *history.Store
+	Dwell   *dwell.Tracker
 }
 
 func New(db *stdb.Client, apiKey, model string) *Asker {
@@ -76,24 +85,107 @@ How the data works:
 
 Rules for answers:
 - Use the snapshot first. Call run_sql only when the snapshot does not have what you need.
+- For anything about the schedule, workshops, sponsors, prizes, buses, judging or what a zone is for, call search_guide if it is available. Where a guide hit names a zone, pair it with that zone's live numbers from the snapshot.
+- For "when" questions (when is food least busy, has the stage emptied out) call zone_history if it is available and describe the trend in words with rough times.
+- For "how long" or "how many different people" questions call zone_dwell if it is available. Its numbers cover phones on the venue wifi only, so say "phones" not "people".
 - Answer in one to three short sentences. Name zones by zone.name, never by id. Say "quiet", "some movement", "busy" rather than quoting scores unless asked.
 - Never guess where an unregistered person is. If someone asks about a person who is not in the person table, say they have not registered or are hidden.
 - Do not mention tables, SQL, or node ids unless the question is about them.`
 
 const toolDesc = `Run one read-only SQL query against the live venue database. SpacetimeDB SQL: SELECT columns or * FROM table [JOIN table ON a.col = b.col] [WHERE ...] [LIMIT n]. No ORDER BY, no GROUP BY, no subqueries. COUNT(*) AS n works. Tables: node(node_id, zone_id, floor, label, x, y, is_real, last_seen_at), zone(zone_id, name, kind, floor, capacity), zone_activity(node_id, zone_id, score, smoothed_score, state, pir, anon_count, updated_at), anon_zone_count(zone_id, count, source, updated_at) where source is live, mock or survey, person(person_id, display_name, team, color, visible, paired, created_at), position(person_id, node_id, zone_id, x, y, source, median_rssi, confidence, updated_at) where source is node or app. The column named floor cannot be selected by name (it parses as a function); use SELECT * instead. Never select identity.`
 
-func (a *Asker) tools() []anthropic.BetaToolUnionParam {
-	return []anthropic.BetaToolUnionParam{{OfTool: &anthropic.BetaToolParam{
-		Name:        "run_sql",
-		Description: anthropic.String(toolDesc),
+func tool(name, desc string, props map[string]any, required ...string) anthropic.BetaToolUnionParam {
+	return anthropic.BetaToolUnionParam{OfTool: &anthropic.BetaToolParam{
+		Name:        name,
+		Description: anthropic.String(desc),
 		InputSchema: anthropic.BetaToolInputSchemaParam{
-			Properties: map[string]any{
-				"query": map[string]any{"type": "string", "description": "The SELECT statement."},
-			},
-			Required:    []string{"query"},
+			Properties:  props,
+			Required:    required,
 			ExtraFields: map[string]any{"additionalProperties": false},
 		},
-	}}}
+	}}
+}
+
+func (a *Asker) tools() []anthropic.BetaToolUnionParam {
+	out := []anthropic.BetaToolUnionParam{tool("run_sql", toolDesc, map[string]any{
+		"query": map[string]any{"type": "string", "description": "The SELECT statement."},
+	}, "query")}
+	if a.Search != nil {
+		out = append(out, tool("search_guide",
+			"Semantic search over the Cal Hacks hacker guide: what each zone is for, the schedule, workshops, sponsor tracks and prizes, buses, judging, Slack. Returns the best matching passages with a zone id where one applies.",
+			map[string]any{
+				"query": map[string]any{"type": "string", "description": "Natural language, e.g. 'where is the Moss workshop' or 'when do buses leave'."},
+			}, "query"))
+	}
+	if a.History != nil {
+		out = append(out, tool("zone_history",
+			"Phones heard and movement for one zone over the last hours, averaged into buckets, oldest first. Use it for 'when' questions and trends. Times are UTC.",
+			map[string]any{
+				"zone_id": map[string]any{"type": "string", "description": "zone.zone_id, e.g. food."},
+				"hours":   map[string]any{"type": "integer", "description": "How far back to look, 1 to 48. Default 6."},
+			}, "zone_id"))
+	}
+	if a.Dwell != nil {
+		out = append(out, tool("zone_dwell",
+			"How long unregistered phones typically stay in each zone, how many distinct phones visited today, how many are there now, and how many came back after leaving. Use it for 'how long do people spend', 'how many different people', 'do people come back'. Omit zone_id for every zone and the venue total.",
+			map[string]any{
+				"zone_id": map[string]any{"type": "string", "description": "zone.zone_id, e.g. food. Optional."},
+			}))
+	}
+	return out
+}
+
+func (a *Asker) runTool(ctx context.Context, name, rawInput string) (string, bool) {
+	var in struct {
+		Query  string `json:"query"`
+		ZoneID string `json:"zone_id"`
+		Hours  int    `json:"hours"`
+	}
+	if err := json.Unmarshal([]byte(rawInput), &in); err != nil {
+		return "input was not valid JSON", true
+	}
+	switch name {
+	case "run_sql":
+		if in.Query == "" {
+			return "query is required", true
+		}
+		return a.runSQL(ctx, in.Query)
+	case "search_guide":
+		if a.Search == nil || in.Query == "" {
+			return "search_guide is not available", true
+		}
+		res, err := a.Search.Query(ctx, in.Query, 5)
+		if err != nil {
+			return "search failed: " + err.Error(), true
+		}
+		b, _ := json.Marshal(res)
+		return string(b), false
+	case "zone_history":
+		if a.History == nil || in.ZoneID == "" {
+			return "zone_history is not available", true
+		}
+		window, bucket := history.Window(in.Hours)
+		pts, err := a.History.Recent(ctx, in.ZoneID, window, bucket)
+		if err != nil {
+			return "history failed: " + err.Error(), true
+		}
+		if len(pts) == 0 {
+			return "no samples for that zone yet", false
+		}
+		b, _ := json.Marshal(pts)
+		return string(b), false
+	case "zone_dwell":
+		if a.Dwell == nil {
+			return "zone_dwell is not available", true
+		}
+		var v any = a.Dwell.Report(time.Now())
+		if in.ZoneID != "" {
+			v = a.Dwell.Zone(in.ZoneID, time.Now())
+		}
+		b, _ := json.Marshal(v)
+		return string(b), false
+	}
+	return "unknown tool " + name, true
 }
 
 // snapshot is a compact JSON view of zones, activity and visible people.
@@ -202,9 +294,10 @@ func (a *Asker) PrivacyReceipt(ctx context.Context, personID int) (string, error
 		"person":    rows[0],
 		"position":  pos,
 		"signature": sig,
-		"stored_about_devices": "a salted SHA-256 hash of the phone's wifi address, never the address itself; " +
-			"sightings of that hash are kept for 70 seconds then deleted",
-		"not_stored": []string{"raw MAC addresses", "names of people who did not register", "any location history older than 60 seconds (2 minutes for positions sent by the phone app)"},
+		"stored_about_devices": "the database holds a salted SHA-256 hash of the phone's wifi address; sightings of that hash are kept for 70 seconds then deleted; " +
+			"the bridge holds the raw wifi address in memory while the phone is in range, and for 24 hours the hash with the zone it is in, when it was first heard, how many times it came back and which zones it stayed in; " +
+			"anyone viewing the map can tap an unregistered phone's dot and see its address, which nodes hear it, and that day summary",
+		"not_stored": []string{"raw MAC addresses in the database or on disk", "names of people who did not register", "any location history older than 60 seconds (2 minutes for positions sent by the phone app)"},
 	})
 	const receiptSystem = `Write a short privacy receipt for one attendee of a hackathon venue map, in second person, plain English, under 120 words. State what is held about them right now, how long each thing lasts, and that they can delete everything with the Delete my data button. No headings, no bullet points, no reassurance beyond the facts.`
 	return a.loop(ctx, receiptSystem, "Facts as JSON:\n"+string(facts))
@@ -240,14 +333,7 @@ func (a *Asker) loop(ctx context.Context, sys, user string) (string, error) {
 			case anthropic.BetaTextBlock:
 				text.WriteString(v.Text)
 			case anthropic.BetaToolUseBlock:
-				var in struct {
-					Query string `json:"query"`
-				}
-				if err := json.Unmarshal([]byte(v.JSON.Input.Raw()), &in); err != nil || in.Query == "" {
-					results = append(results, anthropic.NewBetaToolResultBlock(v.ID, "input was not valid JSON with a query string", true))
-					continue
-				}
-				out, isErr := a.runSQL(ctx, in.Query)
+				out, isErr := a.runTool(ctx, v.Name, v.JSON.Input.Raw())
 				results = append(results, anthropic.NewBetaToolResultBlock(v.ID, out, isErr))
 			}
 		}

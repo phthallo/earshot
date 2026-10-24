@@ -5,6 +5,7 @@ package node
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
 	"strings"
 )
 
@@ -19,8 +20,44 @@ type Message struct {
 	State string    `json:"state,omitempty"`
 	PIR   int       `json:"pir,omitempty"`
 	Anon  int       `json:"anon,omitempty"`
-	Items [][2]any  `json:"items,omitempty"` // [macHash, rssi]
+	Items [][]any   `json:"items,omitempty"` // [macHash, rssi] or [macHash, rssi, mac]
 	Amps  []float64 `json:"amps,omitempty"`
+}
+
+// Sight is one decoded item of a sight line.
+type Sight struct {
+	MacHash string
+	RSSI    int
+	// The raw MAC, when the node sends it. Kept in bridge memory for the
+	// device sheet, never written to the database.
+	MAC string
+}
+
+// Sights decodes Items. RSSI arrives as a number from Go nodes and as a
+// string from older firmware; items without a hash are dropped.
+func (m Message) Sights() []Sight {
+	out := make([]Sight, 0, len(m.Items))
+	for _, it := range m.Items {
+		if len(it) < 2 {
+			continue
+		}
+		hash, _ := it[0].(string)
+		rssi := 0
+		switch v := it[1].(type) {
+		case float64:
+			rssi = int(v)
+		case string:
+			rssi, _ = strconv.Atoi(v)
+		}
+		s := Sight{MacHash: hash, RSSI: rssi}
+		if len(it) > 2 {
+			s.MAC, _ = it[2].(string)
+		}
+		if hash != "" {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 // Command is a bridge to node message.

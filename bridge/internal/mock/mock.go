@@ -1,7 +1,8 @@
 // Package mock replays a plausible hackathon crowd through the venue so the
-// whole stack runs with no hardware. Walkers wander the arc towards zones
-// weighted by the time of day; each node hears walkers by a log-distance RSSI
-// model, counts them, and reports a motion score from how many are nearby.
+// whole stack runs with no hardware. Walkers wander the floorplan towards
+// zones weighted by the time of day, taking the stairs between floors; each
+// node hears walkers by a log-distance RSSI model, counts them, and reports a
+// motion score from how many are nearby.
 package mock
 
 import (
@@ -41,16 +42,24 @@ type attendee struct {
 }
 
 type walker struct {
-	s, lateral float64 // arc parameter and offset across the arc, in map units
+	x, y       float64 // floorplan pixels, same space as nodes and zones
 	floor      int
-	targetS    float64
+	tx, ty     float64 // where the walker is heading
+	nextFloor  int     // set while heading to a staircase; 0 otherwise
+	nx, ny     float64 // target on nextFloor once the stairs are climbed
 	dwellUntil time.Time
 	macHash    string
 	home       string // zone id for bound walkers, "" for anonymous
 	personName string
 }
 
+type stair struct {
+	Bottom venue.Point `json:"bottom"` // floor 1 end
+	Top    venue.Point `json:"top"`    // floor 2 end
+}
+
 type Mock struct {
+	stairs   []stair
 	v        *venue.Venue
 	client   *stdb.Client
 	batch    *ingest.Batcher
@@ -76,6 +85,13 @@ func New(v *venue.Venue, c *stdb.Client, b *ingest.Batcher, salt, tokenDir strin
 	if err := readJSON(filepath.Join(v.Dir, "wifall_mock.json"), &m.csi); err != nil {
 		return nil, err
 	}
+	var lm struct {
+		Stairs []stair `json:"stairs"`
+	}
+	if err := readJSON(filepath.Join(v.Dir, "landmarks.json"), &lm); err != nil {
+		return nil, err
+	}
+	m.stairs = lm.Stairs
 	return m, nil
 }
 
@@ -138,7 +154,8 @@ func (m *Mock) Setup(ctx context.Context) error {
 		w.home = a.Home
 		w.personName = a.DisplayName
 		if z := m.zoneByID(a.Home); z != nil {
-			w.s = (z.S0 + z.S1) / 2
+			w.x, w.y = m.samplePoint(z)
+			w.tx, w.ty = w.x, w.y
 			w.floor = z.Floor
 		}
 		m.walkers = append(m.walkers, w)
@@ -155,12 +172,34 @@ func (m *Mock) Setup(ctx context.Context) error {
 	return nil
 }
 
+// newWalker drops a walker inside a random zone on the floor.
 func (m *Mock) newWalker(floor int) *walker {
-	s := m.rng.Float64()
-	if floor == 2 {
-		s = 0.45 + 0.55*m.rng.Float64()
+	var cands []*venue.Zone
+	for i := range m.v.Zones {
+		if m.v.Zones[i].Floor == floor {
+			cands = append(cands, &m.v.Zones[i])
+		}
 	}
-	return &walker{s: s, lateral: (m.rng.Float64()*2 - 1) * m.v.Arc.HalfWidth * 0.8, floor: floor, targetS: s}
+	w := &walker{floor: floor}
+	if len(cands) > 0 {
+		w.x, w.y = m.samplePoint(cands[m.rng.Intn(len(cands))])
+	}
+	w.tx, w.ty = w.x, w.y
+	return w
+}
+
+// samplePoint picks a uniform random point inside the zone polygon by
+// rejection sampling over its bounding box, falling back to the centroid.
+func (m *Mock) samplePoint(z *venue.Zone) (float64, float64) {
+	minX, minY, maxX, maxY := z.Bounds()
+	for i := 0; i < 64; i++ {
+		p := venue.Point{minX + m.rng.Float64()*(maxX-minX), minY + m.rng.Float64()*(maxY-minY)}
+		if z.Contains(p) {
+			return p[0], p[1]
+		}
+	}
+	c := z.Centroid()
+	return c[0], c[1]
 }
 
 func (m *Mock) zoneByID(id string) *venue.Zone {
@@ -188,16 +227,21 @@ func (m *Mock) weights(now time.Time) map[string]float64 {
 func (m *Mock) pickTarget(w *walker, now time.Time) {
 	if w.home != "" && m.rng.Float64() < 0.6 {
 		if z := m.zoneByID(w.home); z != nil {
-			w.targetS = z.S0 + m.rng.Float64()*(z.S1-z.S0)
+			m.headTo(w, z)
 			return
 		}
+	}
+	// Mostly stay on this floor; now and then take the stairs.
+	floor := w.floor
+	if len(m.stairs) > 0 && m.rng.Float64() < 0.15 {
+		floor = 3 - floor
 	}
 	weights := m.weights(now)
 	total := 0.0
 	var cands []*venue.Zone
 	for i := range m.v.Zones {
 		z := &m.v.Zones[i]
-		if z.Floor != w.floor {
+		if z.Floor != floor {
 			continue
 		}
 		cands = append(cands, z)
@@ -207,15 +251,45 @@ func (m *Mock) pickTarget(w *walker, now time.Time) {
 	for _, z := range cands {
 		r -= weights[z.ZoneID]
 		if r <= 0 {
-			w.targetS = z.S0 + m.rng.Float64()*(z.S1-z.S0)
+			m.headTo(w, z)
 			return
 		}
 	}
 }
 
-// Arc length per unit of s, in map units.
-func (m *Mock) arcLen() float64 {
-	return m.v.Arc.R * (m.v.Arc.A1 - m.v.Arc.A0) * math.Pi / 180
+// headTo aims the walker at a point in the zone, via the nearest staircase
+// when the zone is on the other floor.
+func (m *Mock) headTo(w *walker, z *venue.Zone) {
+	x, y := m.samplePoint(z)
+	if z.Floor == w.floor || len(m.stairs) == 0 {
+		w.tx, w.ty = x, y
+		w.nextFloor = 0
+		return
+	}
+	e := m.stairEnd(m.nearestStair(w), w.floor)
+	w.tx, w.ty = e[0], e[1]
+	w.nextFloor = z.Floor
+	w.nx, w.ny = x, y
+}
+
+func (m *Mock) stairEnd(s stair, floor int) venue.Point {
+	if floor == 2 {
+		return s.Top
+	}
+	return s.Bottom
+}
+
+// nearestStair returns the staircase whose end on the walker's floor is
+// closest to the walker.
+func (m *Mock) nearestStair(w *walker) stair {
+	best, bestD := m.stairs[0], math.Inf(1)
+	for _, s := range m.stairs {
+		e := m.stairEnd(s, w.floor)
+		if d := math.Hypot(e[0]-w.x, e[1]-w.y); d < bestD {
+			best, bestD = s, d
+		}
+	}
+	return best
 }
 
 func (m *Mock) step(now time.Time) {
@@ -224,25 +298,36 @@ func (m *Mock) step(now time.Time) {
 		if now.Before(w.dwellUntil) {
 			continue
 		}
-		d := w.targetS - w.s
-		ds := stepUnits / m.arcLen()
-		if math.Abs(d) <= ds {
-			w.s = w.targetS
-			w.dwellUntil = now.Add(time.Duration(20+m.rng.Intn(160)) * time.Second)
-			m.pickTarget(w, now)
+		dx, dy := w.tx-w.x, w.ty-w.y
+		d := math.Hypot(dx, dy)
+		if d <= stepUnits {
+			w.x, w.y = w.tx, w.ty
+			switch {
+			case w.nextFloor != 0 && w.floor != w.nextFloor:
+				// At the foot (or head) of the stairs: change floor and walk
+				// the flight to its other end.
+				s := m.nearestStair(w)
+				w.floor = w.nextFloor
+				e := m.stairEnd(s, w.floor)
+				w.tx, w.ty = e[0], e[1]
+			case w.nextFloor != 0:
+				w.tx, w.ty = w.nx, w.ny
+				w.nextFloor = 0
+			default:
+				w.dwellUntil = now.Add(time.Duration(20+m.rng.Intn(160)) * time.Second)
+				m.pickTarget(w, now)
+			}
 			continue
 		}
-		w.s += math.Copysign(ds, d)
-		w.lateral += (m.rng.Float64()*2 - 1) * 2
-		w.lateral = math.Max(-m.v.Arc.HalfWidth*0.9, math.Min(m.v.Arc.HalfWidth*0.9, w.lateral))
+		// Straight line plus a little sideways wander so paths are not rails.
+		w.x += dx/d*stepUnits + (m.rng.Float64()*2-1)*2
+		w.y += dy/d*stepUnits + (m.rng.Float64()*2-1)*2
 	}
 }
 
 // distance in metres from a walker to a node.
 func (m *Mock) dist(w *walker, n *venue.Node) float64 {
-	ds := (w.s - n.S) * m.arcLen()
-	units := math.Hypot(ds, w.lateral)
-	d := units * m.v.MetersPerUnit
+	d := math.Hypot(w.x-n.X, w.y-n.Y) * m.v.MetersPerUnit
 	if w.floor != n.Floor {
 		d = math.Hypot(d, 4) * 1.8 // through a floor
 	}
@@ -279,7 +364,7 @@ func (m *Mock) emit(now time.Time) {
 			}
 		}
 		for _, p := range m.phantom {
-			if p.floor == n.Floor && math.Abs(p.s-n.S) < 0.01 {
+			if p.floor == n.Floor && math.Hypot(p.x-n.X, p.y-n.Y) < 1 {
 				items = append(items, ingest.Sight{MacHash: p.macHash, RSSI: -44 + m.rng.Intn(5)})
 			}
 		}
@@ -348,14 +433,13 @@ func (m *Mock) servePairings(ctx context.Context) {
 			continue
 		}
 		mac := fmt.Sprintf("0a:%02x:%02x:%02x:%02x:%02x", m.rng.Intn(256), m.rng.Intn(256), m.rng.Intn(256), m.rng.Intn(256), m.rng.Intn(256))
-		p := &walker{s: n.S, floor: n.Floor, macHash: node.HashMAC(m.salt, mac)}
+		p := &walker{x: n.X, y: n.Y, tx: n.X, ty: n.Y, floor: n.Floor, macHash: node.HashMAC(m.salt, mac)}
 		m.phantom[id] = p
 		log.Printf("mock: phone appears at node %d for pairing session %d", n.NodeID, id)
 	}
 	for id, p := range m.phantom {
 		if !open[id] {
 			// Session closed. The phone keeps walking as a bound attendee.
-			p.targetS = p.s
 			m.walkers = append(m.walkers, p)
 			delete(m.phantom, id)
 		}

@@ -3,7 +3,7 @@ import { api, ApiError } from '../api';
 import { copy } from '../copy';
 import { useMe } from '../hooks';
 
-export function PrivacyPage({ mock }: { mock: boolean }) {
+export function PrivacyPage({ mock, receipts, onGoToMe }: { mock: boolean; receipts: boolean; onGoToMe: () => void }) {
   const me = useMe();
   const [receipt, setReceipt] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,17 +26,28 @@ export function PrivacyPage({ mock }: { mock: boolean }) {
   return (
     <section className="sheet">
       <h2>{copy.privacy.title}</h2>
-      <p className="intro">{copy.privacy.anon}</p>
+      {copy.privacy.anon.map((line) => (
+        <p key={line} className="intro">
+          {line}
+        </p>
+      ))}
       {mock && <p className="hint">{copy.privacy.mock}</p>}
-      {me ? (
+      {!me ? (
+        <p className="hint">
+          {copy.privacy.needRegister}{' '}
+          <button type="button" className="link" onClick={onGoToMe}>
+            {copy.privacy.register}
+          </button>
+        </p>
+      ) : !receipts ? (
+        <p className="hint">{copy.privacy.off}</p>
+      ) : (
         <>
           <button type="button" className="primary" onClick={fetchReceipt} disabled={busy}>
             {busy ? copy.privacy.loading : copy.privacy.receipt}
           </button>
           {receipt && <blockquote className="receipt">{receipt}</blockquote>}
         </>
-      ) : (
-        <p className="hint">{copy.privacy.needRegister}</p>
       )}
       {error && <p className="warn" role="alert">{error}</p>}
     </section>

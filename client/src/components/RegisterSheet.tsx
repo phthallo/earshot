@@ -7,7 +7,7 @@ import { NODES, TEAM_COLORS, isRealNode } from '../venue';
 import { useMe, useNow } from '../hooks';
 
 const WARMUP_MS = 5000;
-const NODE_ONLINE_MS = 15000;
+const NODE_ONLINE_MS = 60000;
 
 export function RegisterSheet() {
   const me = useMe();

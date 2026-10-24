@@ -4,7 +4,7 @@ import { copy } from '../copy';
 import { zoneById } from '../venue';
 import { ago, useMe, useNow } from '../hooks';
 
-export function TeamPanel({ onSelectZone }: { onSelectZone: (zoneId: string, floor: number) => void }) {
+export function TeamPanel({ onSelectZone, onGoToMe }: { onSelectZone: (zoneId: string, floor: number) => void; onGoToMe: () => void }) {
   const me = useMe();
   const now = useNow();
   const [people] = useTable(tables.person);
@@ -15,6 +15,9 @@ export function TeamPanel({ onSelectZone }: { onSelectZone: (zoneId: string, flo
       <section className="sheet">
         <h2>{copy.team.title}</h2>
         <p className="intro">{copy.team.none}</p>
+        <button type="button" className="primary" onClick={onGoToMe}>
+          {copy.team.goMe}
+        </button>
       </section>
     );
   }
@@ -40,7 +43,7 @@ export function TeamPanel({ onSelectZone }: { onSelectZone: (zoneId: string, flo
                   {zone.name}, {copy.floors[zone.floor].toLowerCase()}
                   <span className="muted">
                     {' '}
-                    · {copy.team.via[pos.source] ?? pos.source}, {ago(pos.updatedAt.toDate(), now)}
+                    ({copy.team.via[pos.source] ?? pos.source}, {ago(pos.updatedAt.toDate(), now)})
                   </span>
                 </button>
               ) : (

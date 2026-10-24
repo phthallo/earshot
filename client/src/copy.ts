@@ -1,6 +1,6 @@
 // Every string a person reads lives here.
 export const copy = {
-  appName: 'Where everyone is',
+  appName: 'Earshot',
   tagline: 'Cal Hacks 13.0, Palace of Fine Arts',
 
   nav: {
@@ -9,30 +9,64 @@ export const copy = {
     team: 'Team',
     ask: 'Ask',
     privacy: 'Privacy',
+    about: 'About',
   },
 
   floors: { 1: 'Ground floor', 2: 'Mezzanine' } as Record<number, string>,
+  modes: { '3d': '3D', '2d': 'Plan' } as Record<string, string>,
+  liveOnly: 'Live only',
+  scene: {
+    drag: 'Drag to pan, scroll to zoom, shift-drag to orbit',
+    dragTouch: 'Drag to pan, pinch to zoom, two fingers to orbit',
+    planDrag: 'Drag to pan, scroll to zoom',
+    planDragTouch: 'Drag to pan, pinch to zoom',
+    xray: 'X-ray',
+    viewControls: 'View',
+    rotateLeft: 'Rotate left',
+    rotateRight: 'Rotate right',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    fit: 'Fit',
+  },
 
   legend: {
     simulated: 'Simulated crowd',
     live: 'Live count',
     surveyed: (time: string) => `Surveyed ${time}`,
     node: 'Seen by a node',
+    anon: 'Phone heard, not registered',
+    stable: 'Fixed address, trackable',
     app: 'Phone app',
     you: 'You',
+  },
+
+  zone: {
+    close: 'Close',
+    people: (n: number) => (n === 1 ? '1 person' : `${n} people`),
+    of: (cap: number) => `of about ${cap}`,
+    fullness: (pct: number) => `${pct}% full`,
+    noCount: 'No count for this zone yet.',
+    here: 'Here now',
+    more: (n: number) => `and ${n} more`,
+    source: {
+      mock: () => 'Simulated crowd.',
+      live: (time: string) => `Counted by a node at ${time}.`,
+      survey: (time: string) => `Surveyed by a volunteer at ${time}.`,
+    } as Record<string, (time: string) => string>,
   },
 
   map: {
     connecting: 'Connecting to the venue…',
     offline: 'Lost the connection. Retrying.',
     hidden: 'You are hidden from the map.',
+    show: 'Show me',
     noPeople: 'Nobody registered is on this floor.',
     realNode: 'Live node',
   },
 
   register: {
     title: 'Put yourself on the map',
-    intro: 'Register, then let one of the nodes learn your phone. Only people who do this appear by name.',
+    intro: 'Register, then pair your phone at a node. Only registered people show by name.',
     name: 'Name',
     namePlaceholder: 'Priya',
     team: 'Team',
@@ -58,8 +92,8 @@ export const copy = {
     bound: 'Address saved.',
     unbind: 'Remove',
     codeHeading: 'Phone app code',
-    codeHow: 'Type this into the Android app to be tracked anywhere in the building.',
-    codeUnavailable: 'Code appears once the server is up.',
+    codeHow: 'Enter this code in the Android app to appear anywhere in the building.',
+    codeUnavailable: 'Start the server to get a code.',
     visible: 'Show me on the map',
     deleteAll: 'Delete my data',
     deleteConfirm: 'Delete your name, team, phone pairing and walks? This cannot be undone.',
@@ -69,7 +103,8 @@ export const copy = {
 
   team: {
     title: 'Find my team',
-    none: 'Set a team name on the Me page to see your teammates here.',
+    none: 'Set your team name to see teammates and where they were last seen.',
+    goMe: 'Set my team',
     alone: (team: string) => `You are the only one in ${team} so far.`,
     lastSeen: 'last seen',
     notSeen: 'not seen yet',
@@ -87,7 +122,7 @@ export const copy = {
     match: 'Test a match',
     matchResult: (name: string, d: number, second: number) => `Closest: ${name} (distance ${d.toFixed(2)}, next ${second.toFixed(2)})`,
     reset: 'Delete walks',
-    simulatedNote: 'Signature matching is a research feature. One radio cannot identify people from their gait; this shows the pipeline on real walks.',
+    simulatedNote: 'Signature matching is a research feature. One radio cannot identify people from their gait. This shows the pipeline on real walks.',
   },
 
   ask: {
@@ -99,15 +134,58 @@ export const copy = {
     stop: 'Stop',
     listen: 'Read aloud',
     micDenied: 'Microphone blocked. Allow it in the browser and try again.',
+    off: 'Ask is off on this bridge.',
+    offDetail: 'The map, your team and the privacy page still work.',
     examples: ['Where is food least busy?', 'Which hacking floor has room?', 'Is anyone from my team near the stage?'],
+  },
+
+  history: {
+    title: (zone: string) => `${zone}, phones heard`,
+    range: (hours: number) => `Last ${hours} hours.`,
+    quietBusy: (quiet: string, busy: string) => `Quietest around ${quiet}, busiest around ${busy}.`,
+    collecting: 'Still collecting. Come back in a few minutes.',
+  },
+
+  device: {
+    title: 'Phone heard, not registered',
+    close: 'Close',
+    mac: 'Wifi address',
+    noMac: 'This node sends only the hash.',
+    withheld: 'Only shown on the organiser laptop. Everyone else sees the hash.',
+    randomised: 'Randomised by the phone for this network (Android 10+ or iOS 14+).',
+    hardware: 'Factory address. The first six characters name the chip vendor. This is a laptop, badge or older phone.',
+    heard: 'Heard by',
+    dbm: (rssi: number) => `${rssi} dBm`,
+    today: 'Today',
+    // Timeline rows, oldest first.
+    firstHeard: 'First heard',
+    stayDuration: (min: number) => `${min} min`,
+    returned: (n: number) => `Back, visit ${n}`,
+    here: (zone: string) => `In ${zone}`,
+    offZone: 'Not in a zone',
+    now: 'Last heard',
+    hash: 'Salted hash',
+    lastHeard: (when: string) => `Last heard ${when}.`,
+  },
+
+  dwell: {
+    // Unregistered phones on the venue wifi, remembered by the bridge for the day.
+    summary: (unique: number, medianMin: number) =>
+      `${unique} ${unique === 1 ? 'phone' : 'phones'} today` + (medianMin > 0 ? `, typical stay ${Math.round(medianMin)} min.` : '.'),
   },
 
   privacy: {
     title: 'What this map knows about you',
-    anon: 'If you did not register, this map holds a count per zone and nothing else. Phones are seen as a salted hash that is deleted after 70 seconds.',
+    anon: [
+      'Not registered: the map holds a count per zone and an unlabelled dot where the nodes heard your phone.',
+      'Anyone can tap that dot and see which nodes hear it, whether its address is randomised, when it was first heard today and which zones it stayed in.',
+      'The address itself is shown only on the organiser laptop. It stays in bridge memory for a day and never reaches the database, which stores a salted hash.',
+    ],
     receipt: 'Get my receipt',
     loading: 'Writing your receipt…',
-    needRegister: 'Register on the Me page to see what is stored about you.',
+    needRegister: 'Register to get a written receipt of what is stored about you.',
+    register: 'Register',
+    off: 'Written receipts are off on this bridge. The summary above is everything it holds.',
     mock: 'The crowd heat is simulated. Only registered people are tracked from real signals.',
   },
 

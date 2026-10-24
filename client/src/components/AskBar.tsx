@@ -7,7 +7,7 @@ type Turn = { id: number; q: string; a?: string; err?: string };
 
 let nextTurnId = 1;
 
-export function AskBar({ voice }: { voice: boolean }) {
+export function AskBar({ enabled, voice }: { enabled: boolean; voice: boolean }) {
   const [q, setQ] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -55,6 +55,16 @@ export function AskBar({ voice }: { voice: boolean }) {
   function submit(e: FormEvent) {
     e.preventDefault();
     ask(q);
+  }
+
+  if (!enabled) {
+    return (
+      <section className="sheet ask">
+        <h2>{copy.ask.title}</h2>
+        <p className="intro">{copy.ask.off}</p>
+        <p className="hint">{copy.ask.offDetail}</p>
+      </section>
+    );
   }
 
   return (

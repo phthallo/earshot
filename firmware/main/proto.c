@@ -4,25 +4,44 @@
 #include <string.h>
 
 #include "cJSON.h"
-#include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "link.h"
 #include "mbedtls/sha256.h"
 #include "sdkconfig.h"
 
+#if CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+#include "driver/usb_serial_jtag.h"
+#else
+#include "driver/uart.h"
+#endif
+
 #define FW_VERSION "esp-0.1"
 #define RX_LINE_MAX 1024
-/* 128 items of 64 hex chars plus JSON framing. */
-#define TX_BUF_MAX (SNIFF_MAX_ENTRIES * 80 + 128)
+/* One item is a 64 hex hash, an RSSI and a 17 char MAC plus JSON framing. */
+#define TX_BUF_MAX (SNIFF_MAX_ENTRIES * 100 + 128)
 
 static char tx_buf[TX_BUF_MAX];
 static proto_walk_cb_t walk_cb;
+static SemaphoreHandle_t out_lock;
 
-static void emit(const char *s)
+void proto_print_line(const char *s)
 {
+    xSemaphoreTake(out_lock, portMAX_DELAY);
     fputs(s, stdout);
     fputc('\n', stdout);
     fflush(stdout);
+    xSemaphoreGive(out_lock);
+}
+
+static void emit(const char *s)
+{
+#if CONFIG_VENUEMAP_UPLINK_ESPNOW
+    link_send_line(s);
+#else
+    proto_print_line(s);
+#endif
 }
 
 static void hash_mac(const uint8_t *mac, char *hex65)
@@ -51,9 +70,26 @@ void proto_send_sight(uint32_t ts, const sniff_item_t *items, int n)
     int off = snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"sight\",\"id\":%d,\"ts\":%lu,\"items\":[",
                        CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts);
     for (int i = 0; i < n; i++) {
-        hash_mac(items[i].mac, hex);
-        off += snprintf(tx_buf + off, sizeof(tx_buf) - off, "%s[\"%s\",%d]",
-                        i ? "," : "", hex, items[i].rssi);
+        const uint8_t *m = items[i].mac;
+        hash_mac(m, hex);
+        /* The hash is what the database keys on; the MAC is shown when a dot
+         * is clicked and is otherwise not stored. */
+        off += snprintf(tx_buf + off, sizeof(tx_buf) - off, "%s[\"%s\",%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"]",
+                        i ? "," : "", hex, items[i].rssi, m[0], m[1], m[2], m[3], m[4], m[5]);
+        if (off >= (int)sizeof(tx_buf) - 8) break;
+    }
+    snprintf(tx_buf + off, sizeof(tx_buf) - off, "]}");
+    emit(tx_buf);
+}
+
+void proto_send_aps(uint32_t ts, const sniff_item_t *aps, int n)
+{
+    int off = snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"aps\",\"id\":%d,\"ts\":%lu,\"items\":[",
+                       CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts);
+    for (int i = 0; i < n; i++) {
+        const uint8_t *m = aps[i].mac;
+        off += snprintf(tx_buf + off, sizeof(tx_buf) - off, "%s[\"%02x:%02x:%02x:%02x:%02x:%02x\",%d]",
+                        i ? "," : "", m[0], m[1], m[2], m[3], m[4], m[5], aps[i].rssi);
         if (off >= (int)sizeof(tx_buf) - 8) break;
     }
     snprintf(tx_buf + off, sizeof(tx_buf) - off, "]}");
@@ -91,6 +127,16 @@ static void handle_line(const char *line)
     cJSON_Delete(root);
 }
 
+/* One byte from whichever port the console is on, 100 ms timeout. */
+static int read_byte(uint8_t *c)
+{
+#if CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+    return usb_serial_jtag_read_bytes(c, 1, pdMS_TO_TICKS(100));
+#else
+    return uart_read_bytes(UART_NUM_0, c, 1, pdMS_TO_TICKS(100));
+#endif
+}
+
 static void rx_task(void *arg)
 {
     static char line[RX_LINE_MAX];
@@ -98,7 +144,7 @@ static void rx_task(void *arg)
     uint8_t c;
 
     for (;;) {
-        if (uart_read_bytes(UART_NUM_0, &c, 1, pdMS_TO_TICKS(100)) != 1) continue;
+        if (read_byte(&c) != 1) continue;
         if (c == '\n' || c == '\r') {
             if (len > 0) {
                 line[len] = '\0';
@@ -116,7 +162,13 @@ static void rx_task(void *arg)
 void proto_init(proto_walk_cb_t cb)
 {
     walk_cb = cb;
-    /* RX only; stdout keeps using the console's polled UART writes. */
+    out_lock = xSemaphoreCreateMutex();
+    /* RX only; stdout keeps using the console's polled writes. */
+#if CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+    usb_serial_jtag_driver_config_t cfg = USB_SERIAL_JTAG_DRIVER_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&cfg));
+#else
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM_0, 1024, 0, 0, NULL, 0));
+#endif
     xTaskCreate(rx_task, "proto_rx", 4096, NULL, 5, NULL);
 }

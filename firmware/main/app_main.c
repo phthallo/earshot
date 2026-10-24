@@ -13,17 +13,22 @@
 
 #include "csi.h"
 #include "lcd1602.h"
+#include "link.h"
 #include "proto.h"
 #include "sniff.h"
 
 #define TICK_MS 100
 #define FLUSH_MS 1000
+#define APS_MS 5000
 #define CSI_MAX_AGE_MS 1000
 #define RSSI_FLOOR (-85)
 #define MOTION_THRESHOLD 0.15f
+#define LINK_MAX_ITEMS 40
+#define LINK_ITEMS_PER_LINE 2
 
 static volatile bool walk_on;
 static sniff_item_t items[SNIFF_MAX_ENTRIES];
+static sniff_item_t ap_items[SNIFF_MAX_APS];
 
 static void on_walk(bool on)
 {
@@ -92,7 +97,31 @@ static void flush(uint32_t ms, int *prev_anon)
     for (int i = 0; i < n; i++) {
         if (items[i].rssi >= RSSI_FLOOR) items[kept++] = items[i];
     }
+#if CONFIG_VENUEMAP_UPLINK_ESPNOW
+    /* The radio link carries about 40 hashes a second comfortably; keep the
+     * strongest, which are the ones that place people. */
+    if (kept > LINK_MAX_ITEMS) {
+        for (int i = 0; i < LINK_MAX_ITEMS; i++) {
+            int best = i;
+            for (int j = i + 1; j < kept; j++) {
+                if (items[j].rssi > items[best].rssi) best = j;
+            }
+            sniff_item_t tmp = items[i];
+            items[i] = items[best];
+            items[best] = tmp;
+        }
+        kept = LINK_MAX_ITEMS;
+    }
+    /* One radio packet per line: a long line is many fragments, and losing
+     * any one of them loses the whole line. */
+    for (int i = 0; i < kept; i += LINK_ITEMS_PER_LINE) {
+        int n = kept - i < LINK_ITEMS_PER_LINE ? kept - i : LINK_ITEMS_PER_LINE;
+        proto_send_sight(ms, items + i, n);
+    }
+    if (kept == 0) proto_send_sight(ms, items, 0);
+#else
     proto_send_sight(ms, items, kept);
+#endif
 
     float score;
     if (!csi_score(ms, CSI_MAX_AGE_MS, &score)) {
@@ -113,12 +142,14 @@ void app_main(void)
     proto_init(on_walk);
     lcd1602_init();
     wifi_init();
+    link_init();
     sniff_init();
     csi_init();
     proto_send_hello();
 
     float amps[CSI_NUM_AMPS];
     uint32_t last_flush = now_ms();
+    uint32_t last_aps = last_flush;
     uint32_t last_csi_seq = 0;
     int prev_anon = 0;
 
@@ -135,6 +166,11 @@ void app_main(void)
         if (ms - last_flush >= FLUSH_MS) {
             last_flush = ms;
             flush(ms, &prev_anon);
+        }
+        if (ms - last_aps >= APS_MS) {
+            last_aps = ms;
+            int n = sniff_flush_aps(ap_items);
+            if (n > 0) proto_send_aps(ms, ap_items, n);
         }
     }
 }

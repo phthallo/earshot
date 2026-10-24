@@ -50,15 +50,81 @@ static void record(const uint8_t *mac, int8_t rssi)
     portEXIT_CRITICAL(&lock);
 }
 
+typedef struct {
+    uint8_t bssid[6];
+    int8_t best_rssi;
+    uint8_t used;
+} ap_entry_t;
+
+static ap_entry_t aps[SNIFF_MAX_APS];
+
+static void record_ap(const uint8_t *bssid, int8_t rssi)
+{
+    ap_entry_t *free_slot = NULL;
+    portENTER_CRITICAL(&lock);
+    for (int i = 0; i < SNIFF_MAX_APS; i++) {
+        ap_entry_t *e = &aps[i];
+        if (!e->used) {
+            if (!free_slot) free_slot = e;
+            continue;
+        }
+        if (memcmp(e->bssid, bssid, 6) == 0) {
+            if (rssi > e->best_rssi) e->best_rssi = rssi;
+            portEXIT_CRITICAL(&lock);
+            return;
+        }
+    }
+    if (free_slot) {
+        memcpy(free_slot->bssid, bssid, 6);
+        free_slot->best_rssi = rssi;
+        free_slot->used = 1;
+    }
+    portEXIT_CRITICAL(&lock);
+}
+
 static void rx_cb(void *buf, wifi_promiscuous_pkt_type_t type)
 {
     if (type != WIFI_PKT_MGMT && type != WIFI_PKT_DATA) return;
     const wifi_promiscuous_pkt_t *p = buf;
-    if (p->rx_ctrl.sig_len < 16) return;
+    if (p->rx_ctrl.sig_len < 24) return;
+    const uint8_t fc0 = p->payload[0];
+    const uint8_t fc1 = p->payload[1];
     const uint8_t *addr2 = p->payload + 10;
     /* bit 0 of the first octet marks group addresses; a transmitter is always unicast. */
     if (addr2[0] & 0x01) return;
+
+    if (type == WIFI_PKT_MGMT) {
+        const uint8_t subtype = fc0 >> 4;
+        if (subtype == 8 || subtype == 5) {
+            /* Beacon or probe response: the transmitter is an access point. */
+            record_ap(addr2, p->rx_ctrl.rssi);
+            return;
+        }
+        /* Only frames a phone sends while looking for or joining a network.
+         * Action frames (Apple AWDL and the like) use throwaway addresses. */
+        if (subtype != 4 && subtype != 0 && subtype != 2) return;
+    } else if ((fc1 & 0x03) != 0x01) {
+        /* Only ToDS data: a station talking to its access point. FromDS is the
+         * access point; neither bit is peer-to-peer traffic with random addresses. */
+        return;
+    }
     record(addr2, p->rx_ctrl.rssi);
+}
+
+int sniff_flush_aps(sniff_item_t *out)
+{
+    int n = 0;
+    portENTER_CRITICAL(&lock);
+    for (int i = 0; i < SNIFF_MAX_APS; i++) {
+        ap_entry_t *e = &aps[i];
+        if (!e->used) continue;
+        memcpy(out[n].mac, e->bssid, 6);
+        out[n].rssi = e->best_rssi;
+        n++;
+        e->used = 0;
+    }
+    portEXIT_CRITICAL(&lock);
+    return n;
 }
 
 void sniff_init(void)

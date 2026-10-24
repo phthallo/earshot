@@ -1,0 +1,4 @@
+# Third battery node. Build with the same command as sdkconfig.remote, with
+#   -B build-remote-105 -DSDKCONFIG=build-remote-105/sdkconfig
+#   -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.remote;sdkconfig.remote105"
+CONFIG_VENUEMAP_NODE_ID=105

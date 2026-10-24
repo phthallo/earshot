@@ -1,0 +1,6 @@
+# Overrides for a node on a battery that reaches the bridge through the node on
+# USB. Build with:
+#   idf.py -B build-remote -DSDKCONFIG=build-remote/sdkconfig \
+#          -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.remote" build
+CONFIG_VENUEMAP_NODE_ID=104
+CONFIG_VENUEMAP_UPLINK_ESPNOW=y

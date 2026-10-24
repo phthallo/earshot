@@ -10,4 +10,4 @@ BRIDGE_URL=http://localhost:8080 python concierge.py
 
 The address is printed at startup. With `AGENTVERSE_KEY` set the agent registers through the Agentverse mailbox and can be found from the Agentverse UI; without it, it runs locally on port 8001 and can be messaged by another local agent.
 
-The bridge must be running with `ANTHROPIC_API_KEY` set, or every answer is the bridge's "Ask is off" message.
+The agent is only useful when the bridge is running with `ANTHROPIC_API_KEY` set. Without the key the bridge still runs, but every answer is its "Ask is off" message.

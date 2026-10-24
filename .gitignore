@@ -20,3 +20,5 @@ android/app/build/
 data/fingerprints.json
 hacker-guide.pdf
 .DS_Store
+firmware/build-remote*/
+.claude

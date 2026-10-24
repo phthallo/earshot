@@ -54,6 +54,16 @@ export const pushSightingsBatch = spacetimedb.reducer({ nodes: t.array(NodeSight
   }
 });
 
+const AnonPointIn = t.object('AnonPointIn', { floor: t.u8(), x: t.f32(), y: t.f32(), rssi: t.i16(), hue: t.u8(), hash: t.string(), stable: t.bool() });
+
+// Replaces the anonymous dots wholesale; the bridge sends a fresh set every
+// couple of seconds and the tick drops them when the bridge stops.
+export const pushAnonPoints = spacetimedb.reducer({ points: t.array(AnonPointIn) }, (ctx, { points }) => {
+  requireIngest(ctx);
+  for (const p of [...ctx.db.anonPoint.iter()]) ctx.db.anonPoint.id.delete(p.id);
+  for (const p of points) ctx.db.anonPoint.insert({ id: 0, floor: p.floor, x: p.x, y: p.y, rssi: p.rssi, hue: p.hue, hash: p.hash, stable: p.stable, updatedAt: ctx.timestamp });
+});
+
 // CSI frames only matter while someone is recording a walk at that node.
 export const pushCsi = spacetimedb.reducer({ nodeId: t.u16(), amps: t.array(t.f32()) }, (ctx, { nodeId, amps }) => {
   requireIngest(ctx);

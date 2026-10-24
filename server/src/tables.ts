@@ -52,6 +52,32 @@ export const anonZoneCount = table(
   }
 );
 
+// Where the real nodes hear unregistered phones: one dot per phone, placed by
+// the bridge between the nodes that heard it, rounded to about a metre. The
+// set is replaced on every push.
+export const anonPoint = table(
+  { name: 'anon_point', public: true },
+  {
+    id: t.u32().primaryKey().autoInc(),
+    floor: t.u8(),
+    x: t.f32(),
+    y: t.f32(),
+    // Strongest RSSI any node heard, so the client can fade distant phones.
+    rssi: t.i16(),
+    updatedAt: t.timestamp(),
+    // One byte of the phone's salted hash, so a dot keeps its colour between
+    // pushes and can be followed by eye. 256 buckets identify nobody.
+    // Last with a default so the hosted table migrates in place.
+    hue: t.u8().default(0),
+    // The full salted hash, so a click on the dot can ask the bridge for the
+    // phone's MAC and sightings. The MAC itself stays in bridge memory.
+    hash: t.string().default(''),
+    // The phone sent a factory address rather than one made up for this
+    // network, so the same dot can be followed across networks and days.
+    stable: t.bool().default(false),
+  }
+);
+
 export const person = table(
   { name: 'person', public: true },
   {
@@ -215,6 +241,7 @@ export const spacetimedb = schema({
   zone,
   zoneActivity,
   anonZoneCount,
+  anonPoint,
   person,
   position,
   signature,

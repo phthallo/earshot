@@ -20,6 +20,9 @@ import { bind, PAIRING_WARMUP_MS } from './people';
 export const TICK_MS = 500;
 // App fingerprints arrive every 5 to 30 s depending on the phone's scan throttle.
 export const APP_EXPIRE_MS = 120000;
+// Anonymous dots outlive the bridge's push interval by this much, then vanish.
+// Long enough to ride out slow venue wifi between pushes from the bridge.
+export const ANON_POINT_TTL_MS = 90000;
 // A survey count stands in for a zone with no live node for this long.
 export const SURVEY_TTL_MS = 3 * 60 * 60 * 1000;
 
@@ -149,4 +152,7 @@ export const tick = spacetimedb.reducer({ onSchedule: tickSchedule }, { timer: t
   closePairings(ctx, nowMs);
   decayActivity(ctx, nowMs);
   ctx.db.sighting.ts.delete(before(fromMs(nowMs - SIGHTING_RETENTION_MS)));
+  for (const p of [...ctx.db.anonPoint.iter()]) {
+    if (nowMs - toMs(p.updatedAt) > ANON_POINT_TTL_MS) ctx.db.anonPoint.id.delete(p.id);
+  }
 });

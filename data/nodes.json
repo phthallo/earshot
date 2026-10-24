@@ -1,220 +1,32 @@
 {
- "metersPerUnit": 0.25,
- "arc": {
-  "cx": 500.0,
-  "cy": 1000.0,
-  "r": 650.0,
-  "a0": 220.0,
-  "a1": 320.0,
-  "halfWidth": 60
- },
+ "comment": "Coordinates are pixels of client/public/venue-main.jpg at its source size, 2956 x 1380 (the Cal Hacks 13 floorplan). One pixel is about 7 cm.",
+ "metersPerUnit": 0.072,
+ "width": 2956,
+ "height": 1380,
  "nodes": [
-  {
-   "nodeId": 1,
-   "zoneId": "stage",
-   "floor": 1,
-   "label": "Node 1",
-   "x": 25.6,
-   "y": 555.7,
-   "s": 0.0312
-  },
-  {
-   "nodeId": 2,
-   "zoneId": "stage",
-   "floor": 1,
-   "label": "Node 2",
-   "x": 76.8,
-   "y": 506.7,
-   "s": 0.0938
-  },
-  {
-   "nodeId": 3,
-   "zoneId": "hack_a",
-   "floor": 1,
-   "label": "Node 3",
-   "x": 133.0,
-   "y": 463.5,
-   "s": 0.1562
-  },
-  {
-   "nodeId": 4,
-   "zoneId": "hack_a",
-   "floor": 1,
-   "label": "Node 4",
-   "x": 193.6,
-   "y": 426.8,
-   "s": 0.2188
-  },
-  {
-   "nodeId": 5,
-   "zoneId": "hack_a",
-   "floor": 1,
-   "label": "Node 5",
-   "x": 257.8,
-   "y": 396.8,
-   "s": 0.2812
-  },
-  {
-   "nodeId": 6,
-   "zoneId": "workshops",
-   "floor": 1,
-   "label": "Node 6",
-   "x": 324.9,
-   "y": 374.0,
-   "s": 0.3438
-  },
-  {
-   "nodeId": 7,
-   "zoneId": "mentors",
-   "floor": 1,
-   "label": "Node 7",
-   "x": 394.1,
-   "y": 358.7,
-   "s": 0.4062
-  },
-  {
-   "nodeId": 8,
-   "zoneId": "food",
-   "floor": 1,
-   "label": "Node 8",
-   "x": 464.6,
-   "y": 351.0,
-   "s": 0.4688
-  },
-  {
-   "nodeId": 9,
-   "zoneId": "food",
-   "floor": 1,
-   "label": "Node 9",
-   "x": 535.4,
-   "y": 351.0,
-   "s": 0.5312
-  },
-  {
-   "nodeId": 10,
-   "zoneId": "hack_b",
-   "floor": 1,
-   "label": "Node 10",
-   "x": 605.9,
-   "y": 358.7,
-   "s": 0.5938
-  },
-  {
-   "nodeId": 11,
-   "zoneId": "robotics",
-   "floor": 1,
-   "label": "Node 11",
-   "x": 675.1,
-   "y": 374.0,
-   "s": 0.6562
-  },
-  {
-   "nodeId": 12,
-   "zoneId": "mixers",
-   "floor": 1,
-   "label": "Node 12",
-   "x": 742.2,
-   "y": 396.8,
-   "s": 0.7188
-  },
-  {
-   "nodeId": 13,
-   "zoneId": "sleep",
-   "floor": 1,
-   "label": "Node 13",
-   "x": 806.4,
-   "y": 426.8,
-   "s": 0.7812
-  },
-  {
-   "nodeId": 14,
-   "zoneId": "theater",
-   "floor": 1,
-   "label": "Node 14",
-   "x": 867.0,
-   "y": 463.5,
-   "s": 0.8438
-  },
-  {
-   "nodeId": 15,
-   "zoneId": "theater",
-   "floor": 1,
-   "label": "Node 15",
-   "x": 923.2,
-   "y": 506.7,
-   "s": 0.9062
-  },
-  {
-   "nodeId": 16,
-   "zoneId": "checkin",
-   "floor": 1,
-   "label": "Node 16",
-   "x": 974.4,
-   "y": 555.7,
-   "s": 0.9688
-  },
-  {
-   "nodeId": 17,
-   "zoneId": "mezz_relax",
-   "floor": 2,
-   "label": "Node 17",
-   "x": 500.0,
-   "y": 350.0,
-   "s": 0.5
-  },
-  {
-   "nodeId": 18,
-   "zoneId": "mezz_hack",
-   "floor": 2,
-   "label": "Node 18",
-   "x": 668.2,
-   "y": 372.1,
-   "s": 0.65
-  },
-  {
-   "nodeId": 19,
-   "zoneId": "mezz_hack",
-   "floor": 2,
-   "label": "Node 19",
-   "x": 825.0,
-   "y": 437.1,
-   "s": 0.8
-  },
-  {
-   "nodeId": 20,
-   "zoneId": "hardware",
-   "floor": 2,
-   "label": "Node 20",
-   "x": 959.6,
-   "y": 540.4,
-   "s": 0.95
-  },
-  {
-   "nodeId": 101,
-   "zoneId": "hardware",
-   "floor": 2,
-   "label": "Live node: laptop",
-   "x": 925.0,
-   "y": 512.0,
-   "s": 0.93
-  },
-  {
-   "nodeId": 102,
-   "zoneId": "hardware",
-   "floor": 2,
-   "label": "Live node: Raspberry Pi",
-   "x": 961.0,
-   "y": 512.0,
-   "s": 0.93
-  },
-  {
-   "nodeId": 103,
-   "zoneId": "hardware",
-   "floor": 2,
-   "label": "Live node: ESP32",
-   "x": 943.0,
-   "y": 542.0,
-   "s": 0.93
-  }
+  { "nodeId": 1, "zoneId": "stage", "floor": 1, "label": "Node 1", "x": 160, "y": 560 },
+  { "nodeId": 2, "zoneId": "stage", "floor": 1, "label": "Node 2", "x": 330, "y": 400 },
+  { "nodeId": 3, "zoneId": "hack_a", "floor": 1, "label": "Node 3", "x": 560, "y": 430 },
+  { "nodeId": 4, "zoneId": "hack_a", "floor": 1, "label": "Node 4", "x": 760, "y": 380 },
+  { "nodeId": 5, "zoneId": "hack_a", "floor": 1, "label": "Node 5", "x": 930, "y": 330 },
+  { "nodeId": 6, "zoneId": "workshops", "floor": 1, "label": "Node 6", "x": 1610, "y": 360 },
+  { "nodeId": 7, "zoneId": "mentors", "floor": 1, "label": "Node 7", "x": 1860, "y": 680 },
+  { "nodeId": 8, "zoneId": "food", "floor": 1, "label": "Node 8", "x": 2450, "y": 780 },
+  { "nodeId": 9, "zoneId": "food", "floor": 1, "label": "Node 9", "x": 2650, "y": 820 },
+  { "nodeId": 10, "zoneId": "hack_b", "floor": 1, "label": "Node 10", "x": 1130, "y": 330 },
+  { "nodeId": 11, "zoneId": "robotics", "floor": 1, "label": "Node 11", "x": 1570, "y": 590 },
+  { "nodeId": 12, "zoneId": "mixers", "floor": 1, "label": "Node 12", "x": 2170, "y": 900 },
+  { "nodeId": 13, "zoneId": "sleep", "floor": 1, "label": "Node 13", "x": 2340, "y": 640 },
+  { "nodeId": 14, "zoneId": "theater", "floor": 1, "label": "Node 14", "x": 2380, "y": 1100 },
+  { "nodeId": 15, "zoneId": "theater", "floor": 1, "label": "Node 15", "x": 2500, "y": 1170 },
+  { "nodeId": 16, "zoneId": "checkin", "floor": 1, "label": "Node 16", "x": 2720, "y": 1050 },
+  { "nodeId": 17, "zoneId": "mezz_relax", "floor": 2, "label": "Node 17", "x": 1900, "y": 220 },
+  { "nodeId": 18, "zoneId": "mezz_hack", "floor": 2, "label": "Node 18", "x": 1700, "y": 400 },
+  { "nodeId": 19, "zoneId": "mezz_hack", "floor": 2, "label": "Node 19", "x": 2200, "y": 600 },
+  { "nodeId": 20, "zoneId": "hardware", "floor": 2, "label": "Node 20", "x": 2160, "y": 380 },
+  { "nodeId": 21, "zoneId": "hack_b", "floor": 1, "label": "Node 21", "x": 1300, "y": 450 },
+  { "nodeId": 103, "zoneId": "mezz_hack", "floor": 2, "label": "Live node: ESP32", "x": 1850, "y": 385 },
+  { "nodeId": 104, "zoneId": "mezz_hack", "floor": 2, "label": "Live node: ESP32 on battery", "x": 1640, "y": 535 },
+  { "nodeId": 105, "zoneId": "mezz_hack", "floor": 2, "label": "Live node: ESP32 on battery 2", "x": 1965, "y": 435 }
  ]
 }

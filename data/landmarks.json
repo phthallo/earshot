@@ -1,0 +1,4399 @@
+{
+ "heights": {
+  "mezzanine": 4.6,
+  "partition": 2.6,
+  "service": 3.4,
+  "perimeter": 1.2,
+  "table": 0.74
+ },
+ "mezzImage": {
+  "scale": 1.0000665,
+  "dx": -0.385,
+  "dy": 15.252
+ },
+ "rooms": [
+  {
+   "id": "west-storage",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     3.1,
+     324.8
+    ],
+    [
+     97.4,
+     271.6
+    ],
+    [
+     218.3,
+     218.4
+    ],
+    [
+     339.2,
+     165.2
+    ],
+    [
+     382.7,
+     155.5
+    ],
+    [
+     428.7,
+     292.1
+    ],
+    [
+     339.2,
+     326.0
+    ],
+    [
+     263.0,
+     362.2
+    ],
+    [
+     157.9,
+     410.6
+    ],
+    [
+     74.4,
+     452.9
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "green-rooms",
+   "kind": "green",
+   "label": "Green Rooms",
+   "floor": 1,
+   "poly": [
+    [
+     120.4,
+     524.2
+    ],
+    [
+     168.7,
+     497.7
+    ],
+    [
+     286.0,
+     711.6
+    ],
+    [
+     241.3,
+     732.2
+    ]
+   ],
+   "dividers": [
+    [
+     [
+      140.9,
+      560.5
+     ],
+     [
+      202.6,
+      535.1
+     ]
+    ],
+    [
+     [
+      178.4,
+      628.2
+     ],
+     [
+      240.1,
+      600.4
+     ]
+    ]
+   ],
+   "doors": []
+  },
+  {
+   "id": "loading-office",
+   "kind": "room",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     750.2,
+     55.2
+    ],
+    [
+     840.9,
+     47.9
+    ],
+    [
+     906.2,
+     44.3
+    ],
+    [
+     906.2,
+     132.5
+    ],
+    [
+     840.9,
+     141.0
+    ],
+    [
+     769.6,
+     150.7
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "service-6-8",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     1091.2,
+     29.8
+    ],
+    [
+     1227.8,
+     35.8
+    ],
+    [
+     1219.3,
+     99.9
+    ],
+    [
+     1173.4,
+     81.8
+    ],
+    [
+     1137.1,
+     76.9
+    ],
+    [
+     1094.8,
+     90.2
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "catering",
+   "kind": "catering",
+   "label": "Catering Prep",
+   "floor": 1,
+   "poly": [
+    [
+     1274.9,
+     47.9
+    ],
+    [
+     1397.0,
+     55.2
+    ],
+    [
+     1389.8,
+     130.1
+    ],
+    [
+     1268.9,
+     125.3
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "restrooms-north",
+   "kind": "restroom",
+   "label": "Restrooms",
+   "floor": 1,
+   "poly": [
+    [
+     1397.0,
+     52.8
+    ],
+    [
+     1548.2,
+     81.8
+    ],
+    [
+     1717.4,
+     108.4
+    ],
+    [
+     1727.1,
+     120.5
+    ],
+    [
+     1678.7,
+     154.3
+    ],
+    [
+     1548.2,
+     162.8
+    ],
+    [
+     1397.0,
+     135.0
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "breakout-3-4",
+   "kind": "room",
+   "label": "Gate #3 / #4",
+   "floor": 1,
+   "poly": [
+    [
+     1532.1,
+     210.8
+    ],
+    [
+     1637.0,
+     237.7
+    ],
+    [
+     1745.1,
+     261.7
+    ],
+    [
+     1742.1,
+     299.7
+    ],
+    [
+     1735.1,
+     317.8
+    ],
+    [
+     1712.1,
+     392.7
+    ],
+    [
+     1675.1,
+     514.7
+    ],
+    [
+     1477.1,
+     467.8
+    ],
+    [
+     1500.0,
+     349.8
+    ],
+    [
+     1520.0,
+     254.8
+    ]
+   ],
+   "dividers": [
+    [
+     [
+      1501.0,
+      342.8
+     ],
+     [
+      1712.1,
+      392.7
+     ]
+    ]
+   ],
+   "doors": [
+    [
+     1533.0,
+     211.7,
+     1556.0,
+     217.8
+    ],
+    [
+     1517.1,
+     267.7,
+     1514.1,
+     283.8
+    ],
+    [
+     1493.0,
+     384.7,
+     1491.1,
+     396.7
+    ],
+    [
+     1483.1,
+     434.8,
+     1481.1,
+     446.8
+    ],
+    [
+     1732.0,
+     327.7,
+     1720.1,
+     367.7
+    ],
+    [
+     1698.1,
+     437.7,
+     1693.1,
+     454.7
+    ],
+    [
+     1687.1,
+     476.7,
+     1680.1,
+     499.7
+    ]
+   ]
+  },
+  {
+   "id": "venue-offices",
+   "kind": "service",
+   "label": "Palace Games / Venue Staff Offices",
+   "floor": 1,
+   "poly": [
+    [
+     1756.1,
+     145.8
+    ],
+    [
+     1790.0,
+     139.8
+    ],
+    [
+     1910.9,
+     173.6
+    ],
+    [
+     2031.7,
+     224.4
+    ],
+    [
+     2152.6,
+     292.1
+    ],
+    [
+     2273.5,
+     376.8
+    ],
+    [
+     2394.4,
+     460.2
+    ],
+    [
+     2301.3,
+     548.4
+    ],
+    [
+     2264.5,
+     551.7
+    ],
+    [
+     2131.7,
+     450.7
+    ],
+    [
+     2115.5,
+     472.0
+    ],
+    [
+     2236.3,
+     563.8
+    ],
+    [
+     2213.1,
+     589.5
+    ],
+    [
+     2140.6,
+     640.3
+    ],
+    [
+     1752.5,
+     467.4
+    ],
+    [
+     1770.6,
+     362.2
+    ],
+    [
+     1814.1,
+     289.7
+    ],
+    [
+     1834.7,
+     243.8
+    ],
+    [
+     1740.4,
+     209.9
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "breakout-5-service",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2421.0,
+     486.8
+    ],
+    [
+     2529.8,
+     566.6
+    ],
+    [
+     2442.8,
+     657.2
+    ],
+    [
+     2341.2,
+     573.8
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "breakout-5",
+   "kind": "room",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2269.9,
+     664.5
+    ],
+    [
+     2334.0,
+     567.8
+    ],
+    [
+     2442.8,
+     657.2
+    ],
+    [
+     2382.3,
+     691.1
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "east-room",
+   "kind": "room",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2485.1,
+     652.4
+    ],
+    [
+     2529.8,
+     604.0
+    ],
+    [
+     2659.2,
+     702.0
+    ],
+    [
+     2598.8,
+     755.2
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "stair-43",
+   "kind": "stair",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2340.0,
+     739.4
+    ],
+    [
+     2406.5,
+     731.0
+    ],
+    [
+     2497.2,
+     851.9
+    ],
+    [
+     2448.8,
+     872.4
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "east-service",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2737.8,
+     935.3
+    ],
+    [
+     2821.2,
+     871.2
+    ],
+    [
+     2878.0,
+     942.6
+    ],
+    [
+     2783.7,
+     1011.5
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "box-office",
+   "kind": "room",
+   "label": "Box Office",
+   "floor": 1,
+   "poly": [
+    [
+     2629.0,
+     1022.3
+    ],
+    [
+     2737.8,
+     935.3
+    ],
+    [
+     2783.7,
+     1011.5
+    ],
+    [
+     2690.6,
+     1075.5
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "east-restroom",
+   "kind": "restroom",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2783.7,
+     1011.5
+    ],
+    [
+     2878.0,
+     942.6
+    ],
+    [
+     2949.4,
+     1041.7
+    ],
+    [
+     2851.4,
+     1113.0
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "south-service",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     1735.6,
+     704.4
+    ],
+    [
+     1949.5,
+     786.6
+    ],
+    [
+     1927.8,
+     843.4
+    ],
+    [
+     1718.6,
+     747.9
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "loading-south",
+   "kind": "service",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     1999.1,
+     819.2
+    ],
+    [
+     2180.4,
+     957.1
+    ],
+    [
+     2163.5,
+     995.7
+    ],
+    [
+     1982.2,
+     857.9
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "theater",
+   "kind": "theater",
+   "label": "Theater",
+   "floor": 1,
+   "poly": [
+    [
+     2273.5,
+     1105.8
+    ],
+    [
+     2334.0,
+     1073.1
+    ],
+    [
+     2394.4,
+     1056.2
+    ],
+    [
+     2467.0,
+     1057.4
+    ],
+    [
+     2527.4,
+     1081.6
+    ],
+    [
+     2583.0,
+     1128.7
+    ],
+    [
+     2600.0,
+     1148.1
+    ],
+    [
+     2563.7,
+     1184.3
+    ],
+    [
+     2515.3,
+     1208.5
+    ],
+    [
+     2467.0,
+     1238.7
+    ],
+    [
+     2413.8,
+     1275.0
+    ],
+    [
+     2346.1,
+     1208.5
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "theater-annex",
+   "kind": "restroom",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     2413.8,
+     1275.0
+    ],
+    [
+     2467.0,
+     1238.7
+    ],
+    [
+     2575.8,
+     1259.3
+    ],
+    [
+     2590.3,
+     1285.9
+    ],
+    [
+     2474.2,
+     1354.8
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "bleachers",
+   "kind": "stair",
+   "label": "Bleacher stairs to mezzanine",
+   "floor": 1,
+   "poly": [
+    [
+     1445.4,
+     197.8
+    ],
+    [
+     1445.4,
+     457.8
+    ],
+    [
+     1339.0,
+     457.8
+    ],
+    [
+     1339.0,
+     197.8
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "sw-lobby",
+   "kind": "room",
+   "label": null,
+   "floor": 1,
+   "poly": [
+    [
+     286.0,
+     711.6
+    ],
+    [
+     339.2,
+     688.7
+    ],
+    [
+     381.5,
+     770.9
+    ],
+    [
+     381.5,
+     799.9
+    ],
+    [
+     278.7,
+     815.6
+    ],
+    [
+     241.3,
+     732.2
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  },
+  {
+   "id": "stair-m5",
+   "kind": "stair",
+   "label": "Stairs to main floor",
+   "floor": 1,
+   "poly": [
+    [
+     2125.1,
+     478.1
+    ],
+    [
+     2135.7,
+     456.5
+    ],
+    [
+     2208.6,
+     492.5
+    ],
+    [
+     2198.0,
+     514.0
+    ]
+   ],
+   "dividers": [],
+   "doors": []
+  }
+ ],
+ "stairs": [
+  {
+   "id": "stair-43",
+   "poly": [
+    [
+     2340.0,
+     739.4
+    ],
+    [
+     2406.5,
+     731.0
+    ],
+    [
+     2497.2,
+     851.9
+    ],
+    [
+     2448.8,
+     872.4
+    ]
+   ],
+   "top": [
+    2373.2,
+    735.2
+   ],
+   "bottom": [
+    2473.0,
+    862.1
+   ]
+  },
+  {
+   "id": "bleachers",
+   "poly": [
+    [
+     1445.4,
+     197.8
+    ],
+    [
+     1445.4,
+     457.8
+    ],
+    [
+     1339.0,
+     457.8
+    ],
+    [
+     1339.0,
+     197.8
+    ]
+   ],
+   "top": [
+    1445.4,
+    327.8
+   ],
+   "bottom": [
+    1339.0,
+    327.8
+   ]
+  },
+  {
+   "id": "stair-m5",
+   "poly": [
+    [
+     2125.1,
+     478.1
+    ],
+    [
+     2135.7,
+     456.5
+    ],
+    [
+     2208.6,
+     492.5
+    ],
+    [
+     2198.0,
+     514.0
+    ]
+   ],
+   "top": [
+    2130.4,
+    467.3
+   ],
+   "bottom": [
+    2203.3,
+    503.2
+   ]
+  }
+ ],
+ "booths": [
+  {
+   "name": "Visa",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 412.2,
+   "y": 177.4,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158
+  },
+  {
+   "name": "Visa",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 443.2,
+   "y": 164.8,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158
+  },
+  {
+   "name": "Fetch",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 483.2,
+   "y": 155.8,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.2
+  },
+  {
+   "name": "Fetch",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 513.9,
+   "y": 143.4,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.2
+  },
+  {
+   "name": "Microsoft",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 557.4,
+   "y": 135.6,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.6
+  },
+  {
+   "name": "Microsoft",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 588.4,
+   "y": 123.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.6
+  },
+  {
+   "name": "Supercell",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 673.6,
+   "y": 114.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.2
+  },
+  {
+   "name": "Supercell",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 703.8,
+   "y": 102.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 158.2
+  },
+  {
+   "name": "Red Bull",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 995.7,
+   "y": 83.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 177.4
+  },
+  {
+   "name": "Red Bull",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1027.8,
+   "y": 81.8,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 177.4
+  },
+  {
+   "name": "Meta",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1121.0,
+   "y": 112.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.6
+  },
+  {
+   "name": "SpaceX AI",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1154.2,
+   "y": 113.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.6
+  },
+  {
+   "name": "Context.dev",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1187.3,
+   "y": 114.0,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.6
+  },
+  {
+   "name": "Bitdeer",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1296.3,
+   "y": 159.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.1
+  },
+  {
+   "name": "Afterpay",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1329.5,
+   "y": 160.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.1
+  },
+  {
+   "name": "Cartesia",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1362.6,
+   "y": 160.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.1
+  },
+  {
+   "name": "Annapurna",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 783.7,
+   "y": 597.6,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 172.3
+  },
+  {
+   "name": "Annapurna",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 820.0,
+   "y": 592.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 172.3
+  },
+  {
+   "name": "Annapurna",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 856.3,
+   "y": 587.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 172.3
+  },
+  {
+   "name": "Anthropic",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 560.7,
+   "y": 662.0,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 159
+  },
+  {
+   "name": "Anthropic",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 591.5,
+   "y": 650.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 159
+  },
+  {
+   "name": "Anthropic",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 622.3,
+   "y": 638.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 159
+  },
+  {
+   "name": "SpacetimeDB",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 668.3,
+   "y": 627.4,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 165.7
+  },
+  {
+   "name": "SpacetimeDB",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 700.4,
+   "y": 619.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 165.7
+  },
+  {
+   "name": "SpacetimeDB",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 732.6,
+   "y": 610.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 165.7
+  },
+  {
+   "name": "Creao",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 481.7,
+   "y": 691.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 159.1
+  },
+  {
+   "name": "Elastic",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 512.2,
+   "y": 679.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 159.1
+  },
+  {
+   "name": "Apify",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 932.2,
+   "y": 562.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 174.6
+  },
+  {
+   "name": "Armadin",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 965.2,
+   "y": 559.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 174.6
+  },
+  {
+   "name": "CRS Credit Union",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 998.2,
+   "y": 556.0,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 174.6
+  },
+  {
+   "name": "Bright Data",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1042.1,
+   "y": 553.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.8
+  },
+  {
+   "name": "Convex",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1074.9,
+   "y": 554.6,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.8
+  },
+  {
+   "name": "Factory AI",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1107.6,
+   "y": 555.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 1.8
+  },
+  {
+   "name": "Creao",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1980.4,
+   "y": 600.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 20.7
+  },
+  {
+   "name": "Creao",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 2012.3,
+   "y": 613.0,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 20.7
+  },
+  {
+   "name": "Capital One",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 2044.2,
+   "y": 625.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 20.7
+  },
+  {
+   "name": "Moonpay",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1376.2,
+   "y": 597.8,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 13.9
+  },
+  {
+   "name": "Moss",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1411.7,
+   "y": 606.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 13.9
+  },
+  {
+   "name": "Moss",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1447.1,
+   "y": 615.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 13.9
+  },
+  {
+   "name": "Coinbase",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1540.1,
+   "y": 649.1,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Savvy",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1571.5,
+   "y": 659.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "a16z",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1602.9,
+   "y": 669.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Atlassian",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1762.0,
+   "y": 499.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Engramme AI",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1793.3,
+   "y": 509.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Greptile",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1824.7,
+   "y": 520.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Fung",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1872.6,
+   "y": 546.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 23.1
+  },
+  {
+   "name": "Figma",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1903.2,
+   "y": 559.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 23.1
+  },
+  {
+   "name": "YC",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1933.8,
+   "y": 572.4,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 23.1
+  },
+  {
+   "name": "Capital One",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1356.5,
+   "y": 473.5,
+   "w": 24.2,
+   "h": 20.6,
+   "angle": 0
+  },
+  {
+   "name": "Listen Labs",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1388.6,
+   "y": 477.1,
+   "w": 24.2,
+   "h": 20.6,
+   "angle": 0
+  },
+  {
+   "name": "Notability",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1427.9,
+   "y": 478.9,
+   "w": 24.2,
+   "h": 20.6,
+   "angle": 0
+  },
+  {
+   "name": "Runpod",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1496.3,
+   "y": 487.5,
+   "w": 31.4,
+   "h": 23.0,
+   "angle": 15
+  },
+  {
+   "name": "Scale",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1538.2,
+   "y": 497.2,
+   "w": 31.4,
+   "h": 23.0,
+   "angle": 15
+  },
+  {
+   "name": "Decagon",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1576.5,
+   "y": 510.7,
+   "w": 31.4,
+   "h": 23.0,
+   "angle": 15
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1785.2,
+   "y": 692.5,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1816.7,
+   "y": 702.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1848.1,
+   "y": 713.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1896.0,
+   "y": 732.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 32
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1924.0,
+   "y": 749.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 32
+  },
+  {
+   "name": "Mentor tables",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1952.1,
+   "y": 767.3,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 32
+  },
+  {
+   "name": "Hyphenate",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1261.0,
+   "y": 590.7,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 2.6
+  },
+  {
+   "name": "Hyphenate",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1294.0,
+   "y": 592.2,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 2.6
+  },
+  {
+   "name": "Hyphenate",
+   "kind": "sponsor",
+   "floor": 1,
+   "x": 1327.0,
+   "y": 593.6,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 2.6
+  },
+  {
+   "name": "Asus",
+   "kind": "sponsor",
+   "floor": 2,
+   "x": 1625.8,
+   "y": 252.4,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 15.3
+  },
+  {
+   "name": "MLH",
+   "kind": "sponsor",
+   "floor": 2,
+   "x": 2135.6,
+   "y": 502.9,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 31
+  },
+  {
+   "name": "MLH",
+   "kind": "sponsor",
+   "floor": 2,
+   "x": 2168.2,
+   "y": 523.0,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 32.5
+  },
+  {
+   "name": "Seeed Studio",
+   "kind": "sponsor",
+   "floor": 2,
+   "x": 1661.8,
+   "y": 263.6,
+   "w": 30.8,
+   "h": 18.1,
+   "angle": 18.4
+  }
+ ],
+ "tables": [
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 709.6,
+   "y": 156.6,
+   "w": 70.6,
+   "h": 24.1,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 678.3,
+   "y": 164.6,
+   "w": 71.3,
+   "h": 24.5,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 647.0,
+   "y": 172.6,
+   "w": 70.6,
+   "h": 24.1,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 615.8,
+   "y": 180.5,
+   "w": 70.1,
+   "h": 24.5,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 584.6,
+   "y": 188.0,
+   "w": 71.3,
+   "h": 24.3,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 553.4,
+   "y": 195.5,
+   "w": 71.3,
+   "h": 24.1,
+   "angle": 76.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 522.1,
+   "y": 203.3,
+   "w": 71.6,
+   "h": 24.8,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 490.9,
+   "y": 211.1,
+   "w": 71.1,
+   "h": 24.5,
+   "angle": 76
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1016.3,
+   "y": 229.4,
+   "w": 105.2,
+   "h": 24.2,
+   "angle": 91.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1049.0,
+   "y": 230.4,
+   "w": 105.1,
+   "h": 24.1,
+   "angle": 90
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1080.7,
+   "y": 230.8,
+   "w": 104.2,
+   "h": 24.3,
+   "angle": 90.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1112.9,
+   "y": 230.8,
+   "w": 104.2,
+   "h": 24.4,
+   "angle": 91.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1145.1,
+   "y": 231.3,
+   "w": 105.2,
+   "h": 24.3,
+   "angle": 91.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1177.5,
+   "y": 232.3,
+   "w": 105.2,
+   "h": 24.1,
+   "angle": 90.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1209.4,
+   "y": 232.8,
+   "w": 104.2,
+   "h": 24.5,
+   "angle": 90.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1242.1,
+   "y": 232.8,
+   "w": 104.0,
+   "h": 24.1,
+   "angle": 90
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 924.7,
+   "y": 242.4,
+   "w": 105.5,
+   "h": 24.3,
+   "angle": 81.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 893.0,
+   "y": 247.5,
+   "w": 105.4,
+   "h": 24.3,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 861.1,
+   "y": 252.5,
+   "w": 105.2,
+   "h": 24.8,
+   "angle": 80.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 829.2,
+   "y": 257.4,
+   "w": 105.4,
+   "h": 24.1,
+   "angle": 81.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 798.0,
+   "y": 262.9,
+   "w": 105.2,
+   "h": 24.4,
+   "angle": 81.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 765.8,
+   "y": 267.7,
+   "w": 105.5,
+   "h": 24.4,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 734.0,
+   "y": 272.8,
+   "w": 105.2,
+   "h": 24.4,
+   "angle": 81.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 702.5,
+   "y": 277.6,
+   "w": 105.2,
+   "h": 24.4,
+   "angle": 81.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 670.5,
+   "y": 282.7,
+   "w": 105.2,
+   "h": 24.3,
+   "angle": 80.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 639.0,
+   "y": 287.8,
+   "w": 104.8,
+   "h": 23.9,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 549.2,
+   "y": 328.3,
+   "w": 71.0,
+   "h": 24.3,
+   "angle": 70.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 519.5,
+   "y": 339.3,
+   "w": 71.0,
+   "h": 24.7,
+   "angle": 69
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1014.0,
+   "y": 358.4,
+   "w": 105.1,
+   "h": 24.1,
+   "angle": 90
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1046.7,
+   "y": 358.4,
+   "w": 105.1,
+   "h": 25.0,
+   "angle": 91.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1078.8,
+   "y": 359.8,
+   "w": 104.2,
+   "h": 24.5,
+   "angle": 91.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1110.4,
+   "y": 359.8,
+   "w": 104.2,
+   "h": 24.5,
+   "angle": 90.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1143.0,
+   "y": 360.3,
+   "w": 105.2,
+   "h": 24.3,
+   "angle": 91.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1175.1,
+   "y": 360.8,
+   "w": 104.0,
+   "h": 24.1,
+   "angle": 90
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1207.2,
+   "y": 361.8,
+   "w": 104.1,
+   "h": 24.5,
+   "angle": 90.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1239.6,
+   "y": 362.2,
+   "w": 105.1,
+   "h": 24.5,
+   "angle": 90.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 488.9,
+   "y": 350.3,
+   "w": 71.6,
+   "h": 24.3,
+   "angle": 70.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 944.6,
+   "y": 369.4,
+   "w": 105.1,
+   "h": 25.1,
+   "angle": 80.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 913.2,
+   "y": 374.2,
+   "w": 104.8,
+   "h": 24.2,
+   "angle": 81.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 458.6,
+   "y": 361.4,
+   "w": 71.0,
+   "h": 24.5,
+   "angle": 69.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 881.7,
+   "y": 379.2,
+   "w": 105.4,
+   "h": 24.7,
+   "angle": 80.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 849.6,
+   "y": 384.4,
+   "w": 105.5,
+   "h": 24.7,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 817.8,
+   "y": 389.3,
+   "w": 105.3,
+   "h": 24.1,
+   "angle": 81.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 428.5,
+   "y": 372.5,
+   "w": 71.4,
+   "h": 24.3,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 786.0,
+   "y": 394.3,
+   "w": 105.3,
+   "h": 24.7,
+   "angle": 80.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 754.1,
+   "y": 399.4,
+   "w": 105.3,
+   "h": 24.5,
+   "angle": 80.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 398.3,
+   "y": 383.2,
+   "w": 71.2,
+   "h": 24.7,
+   "angle": 69.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 722.7,
+   "y": 404.6,
+   "w": 105.8,
+   "h": 24.2,
+   "angle": 81.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 690.9,
+   "y": 409.6,
+   "w": 105.5,
+   "h": 24.9,
+   "angle": 80.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 368.3,
+   "y": 394.3,
+   "w": 71.6,
+   "h": 24.1,
+   "angle": 69.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 659.0,
+   "y": 414.6,
+   "w": 105.5,
+   "h": 24.7,
+   "angle": 81.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 337.9,
+   "y": 405.0,
+   "w": 71.2,
+   "h": 24.7,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 307.5,
+   "y": 416.4,
+   "w": 71.0,
+   "h": 24.3,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 587.5,
+   "y": 433.2,
+   "w": 105.4,
+   "h": 24.4,
+   "angle": 69.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 557.4,
+   "y": 444.1,
+   "w": 105.2,
+   "h": 24.8,
+   "angle": 70.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 527.4,
+   "y": 455.1,
+   "w": 105.3,
+   "h": 24.4,
+   "angle": 69.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 496.7,
+   "y": 465.9,
+   "w": 105.4,
+   "h": 24.9,
+   "angle": 69.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 466.9,
+   "y": 476.9,
+   "w": 105.2,
+   "h": 24.5,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1012.0,
+   "y": 486.9,
+   "w": 104.2,
+   "h": 24.4,
+   "angle": 90.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1044.1,
+   "y": 486.9,
+   "w": 104.3,
+   "h": 24.7,
+   "angle": 91.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1076.5,
+   "y": 487.4,
+   "w": 105.1,
+   "h": 24.1,
+   "angle": 90.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1108.7,
+   "y": 488.3,
+   "w": 105.1,
+   "h": 24.2,
+   "angle": 90.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1140.9,
+   "y": 488.8,
+   "w": 104.3,
+   "h": 24.7,
+   "angle": 91.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1172.7,
+   "y": 489.3,
+   "w": 105.1,
+   "h": 24.2,
+   "angle": 90.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 436.5,
+   "y": 487.7,
+   "w": 105.3,
+   "h": 24.3,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1205.1,
+   "y": 489.8,
+   "w": 104.0,
+   "h": 24.1,
+   "angle": 90
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1237.5,
+   "y": 490.3,
+   "w": 105.2,
+   "h": 24.2,
+   "angle": 91
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 965.1,
+   "y": 496.2,
+   "w": 105.7,
+   "h": 24.8,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 406.3,
+   "y": 499.1,
+   "w": 105.3,
+   "h": 24.7,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 932.9,
+   "y": 501.4,
+   "w": 105.7,
+   "h": 24.9,
+   "angle": 81.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 901.5,
+   "y": 506.4,
+   "w": 105.8,
+   "h": 24.9,
+   "angle": 81.3
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 375.9,
+   "y": 510.1,
+   "w": 105.7,
+   "h": 23.9,
+   "angle": 70.2
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 869.7,
+   "y": 511.6,
+   "w": 105.5,
+   "h": 24.3,
+   "angle": 80.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 837.8,
+   "y": 516.6,
+   "w": 105.5,
+   "h": 24.2,
+   "angle": 80.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 345.8,
+   "y": 521.1,
+   "w": 105.5,
+   "h": 24.9,
+   "angle": 70.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 806.5,
+   "y": 521.5,
+   "w": 105.5,
+   "h": 24.4,
+   "angle": 80.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 774.5,
+   "y": 526.7,
+   "w": 105.1,
+   "h": 24.7,
+   "angle": 81.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 742.5,
+   "y": 531.7,
+   "w": 105.1,
+   "h": 24.5,
+   "angle": 81
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 710.7,
+   "y": 536.8,
+   "w": 105.1,
+   "h": 24.4,
+   "angle": 81.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 679.0,
+   "y": 542.1,
+   "w": 105.5,
+   "h": 24.9,
+   "angle": 80.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 631.8,
+   "y": 553.7,
+   "w": 105.4,
+   "h": 24.9,
+   "angle": 69.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 601.4,
+   "y": 564.9,
+   "w": 105.2,
+   "h": 24.9,
+   "angle": 69.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 571.1,
+   "y": 575.6,
+   "w": 105.8,
+   "h": 24.5,
+   "angle": 70.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 540.9,
+   "y": 586.6,
+   "w": 105.7,
+   "h": 24.4,
+   "angle": 69.7
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 510.7,
+   "y": 598.5,
+   "w": 104.8,
+   "h": 24.4,
+   "angle": 69.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 480.5,
+   "y": 609.1,
+   "w": 105.5,
+   "h": 24.2,
+   "angle": 70
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 450.2,
+   "y": 619.9,
+   "w": 105.5,
+   "h": 24.4,
+   "angle": 70.4
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 420.0,
+   "y": 631.0,
+   "w": 105.1,
+   "h": 24.5,
+   "angle": 69.9
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 389.6,
+   "y": 641.9,
+   "w": 105.3,
+   "h": 24.5,
+   "angle": 69.8
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 2103.2,
+   "y": 787.2,
+   "w": 69.5,
+   "h": 20.6,
+   "angle": 106.3
+  },
+  {
+   "name": "checkin",
+   "kind": "checkin",
+   "floor": 1,
+   "x": 2770.2,
+   "y": 1112.5,
+   "w": 37.2,
+   "h": 22.2,
+   "angle": 54.5
+  },
+  {
+   "name": "checkin",
+   "kind": "checkin",
+   "floor": 1,
+   "x": 2738.9,
+   "y": 1133.1,
+   "w": 37.2,
+   "h": 22.1,
+   "angle": 54.2
+  },
+  {
+   "name": "checkin",
+   "kind": "checkin",
+   "floor": 1,
+   "x": 2698.0,
+   "y": 1162.1,
+   "w": 37.2,
+   "h": 22.7,
+   "angle": 53.6
+  },
+  {
+   "name": "checkin",
+   "kind": "checkin",
+   "floor": 1,
+   "x": 2665.4,
+   "y": 1180.5,
+   "w": 37.2,
+   "h": 22.1,
+   "angle": 53.6
+  },
+  {
+   "name": "checkin",
+   "kind": "checkin",
+   "floor": 1,
+   "x": 2626.8,
+   "y": 1206.5,
+   "w": 36.6,
+   "h": 22.2,
+   "angle": 53.1
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1752.0,
+   "y": 530.9,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1781.1,
+   "y": 544.6,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1810.3,
+   "y": 558.1,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1839.4,
+   "y": 571.6,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1868.5,
+   "y": 585.3,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1897.7,
+   "y": 598.8,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1926.8,
+   "y": 612.5,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1955.9,
+   "y": 626.0,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 1985.1,
+   "y": 639.7,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 2014.2,
+   "y": 653.2,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "hacker",
+   "kind": "hacker",
+   "floor": 1,
+   "x": 2043.4,
+   "y": 666.8,
+   "w": 37.1,
+   "h": 24.2,
+   "angle": 116.6
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2309.2,
+   "y": 630.0,
+   "w": 105.7,
+   "h": 17.0,
+   "angle": 126.1
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2494.2,
+   "y": 715.6,
+   "w": 105.3,
+   "h": 17.2,
+   "angle": 42.3
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2468.8,
+   "y": 744.2,
+   "w": 105.5,
+   "h": 17.2,
+   "angle": 43.2
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2365.9,
+   "y": 812.3,
+   "w": 105.2,
+   "h": 18.9,
+   "angle": 42
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2611.6,
+   "y": 978.9,
+   "w": 71.4,
+   "h": 22.5,
+   "angle": 48
+  },
+  {
+   "name": "service",
+   "kind": "service",
+   "floor": 1,
+   "x": 2505.9,
+   "y": 1053.9,
+   "w": 70.7,
+   "h": 22.1,
+   "angle": 46.3
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1842.8,
+   "y": 444.3,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1827.3,
+   "y": 475.2,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1812.0,
+   "y": 506.0,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1871.4,
+   "y": 458.7,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1856.1,
+   "y": 489.7,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1840.6,
+   "y": 520.5,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1900.2,
+   "y": 473.2,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1884.7,
+   "y": 504.1,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1869.4,
+   "y": 534.9,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1928.9,
+   "y": 487.6,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1913.5,
+   "y": 518.4,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1898.0,
+   "y": 549.4,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1957.6,
+   "y": 502.0,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1942.2,
+   "y": 533.0,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1926.7,
+   "y": 563.8,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1986.3,
+   "y": 516.5,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1970.8,
+   "y": 547.3,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1955.5,
+   "y": 578.2,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2014.9,
+   "y": 530.9,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1999.6,
+   "y": 561.7,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 1984.1,
+   "y": 592.7,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2043.7,
+   "y": 545.4,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2028.2,
+   "y": 576.2,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2012.9,
+   "y": 607.1,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2072.4,
+   "y": 559.8,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2057.0,
+   "y": 590.6,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #3",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2041.5,
+   "y": 621.5,
+   "w": 34.5,
+   "h": 22.5,
+   "angle": 116.6
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2282.5,
+   "y": 563.8,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2261.5,
+   "y": 590.9,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2307.9,
+   "y": 583.6,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2286.7,
+   "y": 610.7,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2333.1,
+   "y": 603.4,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2312.0,
+   "y": 630.5,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2358.4,
+   "y": 623.3,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2337.4,
+   "y": 650.3,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2383.8,
+   "y": 643.1,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2362.6,
+   "y": 670.2,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2409.1,
+   "y": 662.9,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2387.9,
+   "y": 690.0,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2434.3,
+   "y": 682.7,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "Mezzanine #4",
+   "kind": "hacker",
+   "floor": 2,
+   "x": 2413.3,
+   "y": 709.8,
+   "w": 34.3,
+   "h": 23.1,
+   "angle": 128
+  },
+  {
+   "name": "3D printer",
+   "kind": "printer",
+   "floor": 2,
+   "x": 1909.9,
+   "y": 390.8,
+   "w": 34.7,
+   "h": 14.7,
+   "angle": 24.4
+  },
+  {
+   "name": "3D printer",
+   "kind": "printer",
+   "floor": 2,
+   "x": 1941.9,
+   "y": 404.7,
+   "w": 34.9,
+   "h": 14.6,
+   "angle": 23.2
+  }
+ ],
+ "rounds": [
+  {
+   "floor": 1,
+   "x": 2137.7,
+   "y": 875.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2066.7,
+   "y": 819.1,
+   "r": 8.2
+  },
+  {
+   "floor": 1,
+   "x": 2160.6,
+   "y": 895.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2167.6,
+   "y": 862.2,
+   "r": 7.1
+  },
+  {
+   "floor": 1,
+   "x": 2173.7,
+   "y": 829.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2191.7,
+   "y": 881.1,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2151.7,
+   "y": 811.1,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2198.6,
+   "y": 847.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2114.7,
+   "y": 857.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2120.6,
+   "y": 823.1,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2128.6,
+   "y": 791.2,
+   "r": 7.1
+  },
+  {
+   "floor": 1,
+   "x": 2144.7,
+   "y": 842.2,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2106.6,
+   "y": 772.2,
+   "r": 7.1
+  },
+  {
+   "floor": 1,
+   "x": 2327.7,
+   "y": 1053.2,
+   "r": 8.0
+  },
+  {
+   "floor": 1,
+   "x": 2307.6,
+   "y": 1058.1,
+   "r": 8.2
+  },
+  {
+   "floor": 1,
+   "x": 2347.6,
+   "y": 1048.1,
+   "r": 7.4
+  },
+  {
+   "floor": 1,
+   "x": 2369.7,
+   "y": 1044.1,
+   "r": 7.3
+  },
+  {
+   "floor": 1,
+   "x": 2391.7,
+   "y": 1039.1,
+   "r": 7.4
+  }
+ ],
+ "mainWalls": [
+  [
+   1541.0,
+   103.8,
+   1536.1,
+   149.7
+  ],
+  [
+   1643.1,
+   116.7,
+   1640.0,
+   154.8
+  ],
+  [
+   1690.1,
+   247.8,
+   1676.1,
+   287.8
+  ],
+  [
+   1676.1,
+   287.8,
+   1742.1,
+   299.7
+  ],
+  [
+   1635.1,
+   239.8,
+   1627.0,
+   276.8
+  ],
+  [
+   2608.2,
+   1149.5,
+   2769.2,
+   1018.6
+  ]
+ ],
+ "mezzWalls": [
+  [
+   1895.3,
+   187.3,
+   2081.3,
+   268.3
+  ],
+  [
+   2081.3,
+   268.3,
+   2235.3,
+   357.3
+  ],
+  [
+   1712.3,
+   132.4,
+   1691.3,
+   225.4
+  ],
+  [
+   1691.3,
+   225.4,
+   1766.4,
+   248.4
+  ],
+  [
+   1766.4,
+   248.4,
+   1786.3,
+   255.4
+  ],
+  [
+   1786.3,
+   255.4,
+   1856.3,
+   275.3
+  ],
+  [
+   1728.3,
+   264.3,
+   1738.3,
+   240.4
+  ],
+  [
+   1739.3,
+   277.4,
+   1755.4,
+   245.3
+  ],
+  [
+   1789.3,
+   257.3,
+   1783.3,
+   277.4
+  ],
+  [
+   1783.3,
+   277.4,
+   1829.4,
+   336.4
+  ],
+  [
+   1895.3,
+   187.3,
+   1826.3,
+   334.3
+  ],
+  [
+   1879.3,
+   223.3,
+   1974.3,
+   266.4
+  ],
+  [
+   1977.3,
+   258.3,
+   1945.3,
+   346.3
+  ],
+  [
+   1841.3,
+   303.4,
+   1880.4,
+   320.3
+  ],
+  [
+   1880.4,
+   320.3,
+   1898.3,
+   327.3
+  ],
+  [
+   1898.3,
+   327.3,
+   1923.3,
+   339.3
+  ],
+  [
+   1903.4,
+   360.3,
+   1914.4,
+   335.3
+  ],
+  [
+   1945.3,
+   346.3,
+   1985.3,
+   363.3
+  ],
+  [
+   2055.3,
+   257.3,
+   2006.4,
+   358.3
+  ],
+  [
+   2053.4,
+   378.3,
+   2091.3,
+   391.3
+  ],
+  [
+   2091.3,
+   391.3,
+   2107.3,
+   391.3
+  ],
+  [
+   2107.3,
+   391.3,
+   2117.3,
+   384.3
+  ],
+  [
+   2152.3,
+   304.3,
+   2108.3,
+   404.3
+  ],
+  [
+   2136.3,
+   351.2,
+   2184.3,
+   377.2
+  ],
+  [
+   2206.3,
+   334.3,
+   2184.3,
+   377.2
+  ],
+  [
+   2108.3,
+   404.3,
+   2162.3,
+   424.3
+  ],
+  [
+   2184.3,
+   377.2,
+   2173.3,
+   406.3
+  ],
+  [
+   2181.3,
+   392.2,
+   2206.3,
+   404.3
+  ],
+  [
+   2235.3,
+   357.3,
+   2167.4,
+   472.3
+  ],
+  [
+   2134.4,
+   414.2,
+   2135.6,
+   456.4
+  ],
+  [
+   2135.6,
+   456.4,
+   2208.6,
+   492.5
+  ],
+  [
+   2208.6,
+   492.5,
+   2198.1,
+   514.1
+  ],
+  [
+   2198.1,
+   514.1,
+   2125.1,
+   478.1
+  ],
+  [
+   1826.3,
+   334.3,
+   1862.4,
+   351.4
+  ],
+  [
+   1862.4,
+   351.4,
+   1866.4,
+   366.4
+  ],
+  [
+   1866.4,
+   366.4,
+   1878.3,
+   367.3
+  ],
+  [
+   1878.3,
+   367.3,
+   1887.4,
+   363.3
+  ],
+  [
+   1887.4,
+   363.3,
+   1981.3,
+   377.4
+  ],
+  [
+   1981.3,
+   377.4,
+   1989.3,
+   398.3
+  ],
+  [
+   1989.3,
+   398.3,
+   2001.3,
+   413.3
+  ],
+  [
+   2001.3,
+   413.3,
+   2042.4,
+   395.3
+  ],
+  [
+   2042.4,
+   395.3,
+   2050.4,
+   378.3
+  ]
+ ],
+ "mezzDoors": [
+  [
+   1766.4,
+   248.4,
+   1786.3,
+   255.4
+  ],
+  [
+   1880.4,
+   320.3,
+   1898.3,
+   327.3
+  ],
+  [
+   1963.3,
+   297.3,
+   1958.4,
+   311.4
+  ],
+  [
+   1985.3,
+   363.3,
+   2006.4,
+   358.3
+  ],
+  [
+   2162.3,
+   424.3,
+   2173.3,
+   406.3
+  ],
+  [
+   2195.3,
+   355.2,
+   2187.3,
+   372.3
+  ]
+ ],
+ "mezzWindows": [
+  [
+   2005.4,
+   411.3,
+   2038.3,
+   397.3
+  ]
+ ],
+ "merchRoom": [
+  [
+   1826.3,
+   334.3
+  ],
+  [
+   1841.3,
+   303.4
+  ],
+  [
+   1880.4,
+   320.3
+  ],
+  [
+   1898.3,
+   327.3
+  ],
+  [
+   1923.3,
+   339.3
+  ],
+  [
+   1945.3,
+   346.3
+  ],
+  [
+   1985.3,
+   363.3
+  ],
+  [
+   2006.4,
+   358.3
+  ],
+  [
+   2050.4,
+   378.3
+  ],
+  [
+   2042.4,
+   395.3
+  ],
+  [
+   2001.3,
+   413.3
+  ],
+  [
+   1989.3,
+   398.3
+  ],
+  [
+   1981.3,
+   377.4
+  ],
+  [
+   1887.4,
+   363.3
+  ],
+  [
+   1878.3,
+   367.3
+  ],
+  [
+   1866.4,
+   366.4
+  ],
+  [
+   1862.4,
+   351.4
+  ]
+ ],
+ "stage": [
+  [
+   223.1,
+   511.0
+  ],
+  [
+   273.1,
+   496.0
+  ],
+  [
+   304.1,
+   588.9
+  ],
+  [
+   254.1,
+   607.9
+  ]
+ ],
+ "screens": [
+  [
+   [
+    220.1,
+    455.0
+   ],
+   [
+    236.1,
+    414.0
+   ],
+   [
+    264.1,
+    482.9
+   ]
+  ],
+  [
+   [
+    298.1,
+    648.9
+   ],
+   [
+    307.0,
+    602.0
+   ],
+   [
+    339.1,
+    673.9
+   ]
+  ]
+ ],
+ "av": [
+  [
+   427.1,
+   239.9
+  ],
+  [
+   477.0,
+   239.9
+  ],
+  [
+   477.0,
+   290.0
+  ],
+  [
+   427.1,
+   290.0
+  ]
+ ],
+ "queue": [
+  [
+   2495.1,
+   819.6
+  ],
+  [
+   2575.2,
+   742.6
+  ],
+  [
+   2715.2,
+   897.6
+  ],
+  [
+   2640.1,
+   971.6
+  ]
+ ],
+ "mezzExtras": {
+  "hole": [
+   [
+    1722.4,
+    381.3
+   ],
+   [
+    1772.3,
+    400.3
+   ],
+   [
+    1748.4,
+    472.4
+   ],
+   [
+    1673.4,
+    524.4
+   ]
+  ],
+  "bars": [
+   [
+    1712.3,
+    414.4,
+    1748.4,
+    472.4
+   ],
+   [
+    1700.4,
+    459.3,
+    1748.4,
+    472.4
+   ],
+   [
+    1693.4,
+    484.4,
+    1748.4,
+    472.4
+   ]
+  ],
+  "backdrop": [
+   1712.3,
+   378.3,
+   1663.4,
+   521.3
+  ],
+  "letters": [
+   1458.7,
+   231.7,
+   1569.9,
+   243.8
+  ]
+ },
+ "amenities": [
+  {
+   "label": "Stage",
+   "kind": "stage",
+   "floor": 1,
+   "x": 262.1,
+   "y": 551.9
+  },
+  {
+   "label": "Fountain",
+   "kind": "water",
+   "floor": 1,
+   "x": 1699.0,
+   "y": 240.7
+  },
+  {
+   "label": "Food",
+   "kind": "food",
+   "floor": 1,
+   "x": 2395.2,
+   "y": 724.6
+  },
+  {
+   "label": "Luggage storage",
+   "kind": "luggage",
+   "floor": 1,
+   "x": 2605.2,
+   "y": 680.6
+  },
+  {
+   "label": "Stanchion queue",
+   "kind": "queue",
+   "floor": 1,
+   "x": 2700.2,
+   "y": 799.5
+  },
+  {
+   "label": "Hardware + merch",
+   "kind": "hardware",
+   "floor": 2,
+   "x": 1973.4,
+   "y": 369.4
+  },
+  {
+   "label": "3D printers",
+   "kind": "printer",
+   "floor": 2,
+   "x": 1926.0,
+   "y": 397.7
+  }
+ ],
+ "labels": [
+  {
+   "label": "Director (staff room)",
+   "floor": 2,
+   "x": 1750.3,
+   "y": 153.5
+  },
+  {
+   "label": "M8 \u00b7 Coffee chat",
+   "floor": 2,
+   "x": 1905.7,
+   "y": 228.7
+  },
+  {
+   "label": "M7 / M6",
+   "floor": 2,
+   "x": 2022.7,
+   "y": 263.5
+  },
+  {
+   "label": "M5 \u00b7 Hardware",
+   "floor": 2,
+   "x": 2147.6,
+   "y": 351.1
+  },
+  {
+   "label": "Pavilion",
+   "floor": 1,
+   "x": 547.1,
+   "y": 449.3
+  },
+  {
+   "label": "Atrium",
+   "floor": 1,
+   "x": 1054.9,
+   "y": 355.0
+  },
+  {
+   "label": "Gate #3",
+   "floor": 1,
+   "x": 1609.8,
+   "y": 301.8
+  },
+  {
+   "label": "Gate #4",
+   "floor": 1,
+   "x": 1596.5,
+   "y": 416.7
+  },
+  {
+   "label": "Broadway #1",
+   "floor": 1,
+   "x": 1547.0,
+   "y": 544.8
+  },
+  {
+   "label": "Broadway #2",
+   "floor": 1,
+   "x": 1909.6,
+   "y": 657.2
+  },
+  {
+   "label": "Broadway #3",
+   "floor": 1,
+   "x": 2256.6,
+   "y": 855.5
+  },
+  {
+   "label": "Breakout #5",
+   "floor": 1,
+   "x": 2357.0,
+   "y": 660.9
+  },
+  {
+   "label": "Food",
+   "floor": 1,
+   "x": 2642.3,
+   "y": 856.7
+  },
+  {
+   "label": "Palace Games",
+   "floor": 1,
+   "x": 1893.9,
+   "y": 242.6
+  },
+  {
+   "label": "Venue Staff Office",
+   "floor": 1,
+   "x": 1959.2,
+   "y": 416.7
+  },
+  {
+   "label": "Theater",
+   "floor": 1,
+   "x": 2434.3,
+   "y": 1150.5
+  },
+  {
+   "label": "Box Office",
+   "floor": 1,
+   "x": 2672.5,
+   "y": 1028.4
+  },
+  {
+   "label": "Green Rooms",
+   "floor": 1,
+   "x": 207.4,
+   "y": 612.5
+  },
+  {
+   "label": "Catering Prep",
+   "floor": 1,
+   "x": 1336.6,
+   "y": 93.9
+  }
+ ],
+ "openings": [
+  {
+   "label": "Public Entrance",
+   "floor": 1,
+   "a": [
+    931.6,
+    607.7
+   ],
+   "b": [
+    1155.2,
+    600.4
+   ]
+  },
+  {
+   "label": "Business Entrance",
+   "floor": 1,
+   "a": [
+    2612.1,
+    1236.3
+   ],
+   "b": [
+    2817.6,
+    1093.7
+   ]
+  },
+  {
+   "label": "Loading Doors",
+   "floor": 1,
+   "a": [
+    907.4,
+    45.5
+   ],
+   "b": [
+    1088.8,
+    34.6
+   ]
+  },
+  {
+   "label": "Loading Doors",
+   "floor": 1,
+   "a": [
+    1999.1,
+    857.9
+   ],
+   "b": [
+    2152.6,
+    978.8
+   ]
+  }
+ ],
+ "deck": [
+  [
+   1446.6,
+   202.7
+  ],
+  [
+   1446.6,
+   461.4
+  ],
+  [
+   1466.0,
+   468.6
+  ],
+  [
+   1467.2,
+   502.5
+  ],
+  [
+   1667.8,
+   559.3
+  ],
+  [
+   1725.9,
+   517.0
+  ],
+  [
+   1757.3,
+   517.0
+  ],
+  [
+   2065.6,
+   665.7
+  ],
+  [
+   2140.6,
+   640.3
+  ],
+  [
+   2170.8,
+   640.3
+  ],
+  [
+   2251.8,
+   699.5
+  ],
+  [
+   2340.0,
+   738.2
+  ],
+  [
+   2406.5,
+   729.8
+  ],
+  [
+   2439.2,
+   732.2
+  ],
+  [
+   2469.4,
+   699.5
+  ],
+  [
+   2471.8,
+   687.5
+  ],
+  [
+   2216.7,
+   486.8
+  ],
+  [
+   2209.5,
+   486.8
+  ],
+  [
+   2197.4,
+   514.6
+  ],
+  [
+   2123.6,
+   477.1
+  ],
+  [
+   2136.9,
+   455.3
+  ],
+  [
+   2204.6,
+   485.6
+  ],
+  [
+   2204.6,
+   478.3
+  ],
+  [
+   2193.7,
+   471.1
+  ],
+  [
+   2193.7,
+   440.8
+  ],
+  [
+   2238.5,
+   363.5
+  ],
+  [
+   2238.5,
+   353.8
+  ],
+  [
+   2193.7,
+   319.9
+  ],
+  [
+   2094.6,
+   267.9
+  ],
+  [
+   1955.6,
+   205.1
+  ],
+  [
+   1838.3,
+   157.9
+  ],
+  [
+   1747.6,
+   128.9
+  ],
+  [
+   1719.8,
+   126.5
+  ],
+  [
+   1683.6,
+   237.7
+  ],
+  [
+   1650.9,
+   237.7
+  ],
+  [
+   1550.6,
+   211.1
+  ]
+ ],
+ "envelope": [
+  [
+   3.1,
+   324.8
+  ],
+  [
+   97.4,
+   271.6
+  ],
+  [
+   218.3,
+   218.4
+  ],
+  [
+   339.2,
+   165.2
+  ],
+  [
+   460.1,
+   126.5
+  ],
+  [
+   581.0,
+   96.3
+  ],
+  [
+   701.9,
+   69.7
+  ],
+  [
+   822.8,
+   50.3
+  ],
+  [
+   943.7,
+   44.3
+  ],
+  [
+   1064.6,
+   34.6
+  ],
+  [
+   1185.5,
+   32.2
+  ],
+  [
+   1306.4,
+   46.7
+  ],
+  [
+   1427.3,
+   66.1
+  ],
+  [
+   1548.2,
+   89.0
+  ],
+  [
+   1669.1,
+   97.5
+  ],
+  [
+   1790.0,
+   136.2
+  ],
+  [
+   1910.9,
+   173.6
+  ],
+  [
+   2031.7,
+   224.4
+  ],
+  [
+   2152.6,
+   292.1
+  ],
+  [
+   2273.5,
+   376.8
+  ],
+  [
+   2394.4,
+   460.2
+  ],
+  [
+   2515.3,
+   550.8
+  ],
+  [
+   2583.0,
+   604.0
+  ],
+  [
+   2666.5,
+   702.0
+  ],
+  [
+   2757.1,
+   779.3
+  ],
+  [
+   2821.2,
+   871.2
+  ],
+  [
+   2878.0,
+   942.6
+  ],
+  [
+   2949.4,
+   1041.7
+  ],
+  [
+   2851.4,
+   1113.0
+  ],
+  [
+   2817.6,
+   1085.2
+  ],
+  [
+   2575.8,
+   1259.3
+  ],
+  [
+   2590.3,
+   1285.9
+  ],
+  [
+   2474.2,
+   1354.8
+  ],
+  [
+   2413.8,
+   1275.0
+  ],
+  [
+   2346.1,
+   1208.5
+  ],
+  [
+   2273.5,
+   1105.8
+  ],
+  [
+   2225.2,
+   1057.4
+  ],
+  [
+   2163.5,
+   995.7
+  ],
+  [
+   1982.2,
+   857.9
+  ],
+  [
+   1927.8,
+   843.4
+  ],
+  [
+   1718.6,
+   747.9
+  ],
+  [
+   1669.1,
+   698.3
+  ],
+  [
+   1548.2,
+   668.1
+  ],
+  [
+   1427.3,
+   642.7
+  ],
+  [
+   1306.4,
+   623.4
+  ],
+  [
+   1185.5,
+   605.3
+  ],
+  [
+   1155.2,
+   600.4
+  ],
+  [
+   895.3,
+   611.3
+  ],
+  [
+   822.8,
+   623.4
+  ],
+  [
+   701.9,
+   645.1
+  ],
+  [
+   581.0,
+   683.8
+  ],
+  [
+   520.5,
+   709.2
+  ],
+  [
+   460.1,
+   732.2
+  ],
+  [
+   381.5,
+   770.9
+  ],
+  [
+   381.5,
+   799.9
+  ],
+  [
+   278.7,
+   815.6
+  ]
+ ]
+}

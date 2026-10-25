@@ -16,9 +16,10 @@ import { ZoneHistory } from './components/ZoneHistory';
 import { ZoneDwell } from './components/ZoneDwell';
 import { DeviceSheet } from './components/DeviceSheet';
 import { ZoneCard } from './components/ZoneCard';
+import { AdminPanel } from './components/admin/AdminPanel';
 
-type View = 'map' | 'me' | 'team' | 'ask' | 'privacy';
-const VIEWS: View[] = ['map', 'me', 'team', 'ask', 'privacy'];
+type View = 'map' | 'me' | 'team' | 'ask' | 'privacy' | 'admin';
+const VIEWS: View[] = ['map', 'me', 'team', 'ask', 'privacy', 'admin'];
 
 export function App() {
   const { isActive, connectionError } = useSpacetimeDB();
@@ -27,6 +28,7 @@ export function App() {
   const [floorParam, setFloor] = useParam('floor', '1');
   const [zoneParam, setZone] = useParam('zone', '');
   const [deviceParam, setDevice] = useParam('device', '');
+  const [venueParam, setVenue] = useParam('venue', '', true);
   // Where the selected dot has been, from the sheet's poll, drawn on the map.
   const [trail, setTrail] = useState<Step[]>([]);
   const pickDevice = (hash: string) => {
@@ -60,7 +62,7 @@ export function App() {
   }
 
   return (
-    <div className={`app view-${view}`}>
+    <div className={`app view-${view}${view === 'admin' && venueParam ? ' with-plan' : ''}`}>
       <img className="planet" src="/brand/earth.png" alt="" aria-hidden="true" />
       <header className="top">
         <a className="brand" href="https://calhacks.io" aria-label="Cal Hacks 13.0">
@@ -103,37 +105,41 @@ export function App() {
 
       <main className={`view-${view}`}>
         {!isActive && <p className="banner">{connectionError ? copy.map.offline : copy.map.connecting}</p>}
-        {mode === '3d' ? (
+        {view === 'admin' ? (
+          <AdminPanel venueId={venueParam} onVenue={setVenue} floor={Number(floorParam) || 1} onFloor={(f) => setFloor(String(f))} />
+        ) : mode === '3d' ? (
           <Suspense fallback={<figure className="map scene"><div className="scene-host" /></figure>}>
             <VenueScene floor={floor} xray={xray} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} />
           </Suspense>
         ) : (
           <VenueMap floor={floor} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} />
         )}
-        <aside className="panel">
-          {view === 'map' && me && !me.visible && (
-            <p className="hint">
-              {copy.map.hidden}{' '}
-              <button type="button" className="link" onClick={() => setVisible({ visible: true })}>
-                {copy.map.show}
-              </button>
-            </p>
-          )}
-          {view === 'map' && deviceParam && <DeviceSheet hash={deviceParam} onTrail={setTrail} onClose={() => pickDevice('')} />}
-          {view === 'map' && zoneParam && <ZoneCard zoneId={zoneParam} liveOnly={liveOnly} onClose={() => setZone('')} />}
-          {view === 'map' && zoneParam && health?.history && <ZoneHistory zoneId={zoneParam} />}
-          {view === 'map' && zoneParam && <ZoneDwell zoneId={zoneParam} />}
-          {view === 'me' && (
-            <>
-              <RegisterSheet />
-              <WalkEnrol />
-            </>
-          )}
-          {view === 'team' && <TeamPanel onSelectZone={showZone} onGoToMe={() => setView('me')} />}
-          {view === 'ask' && <AskBar enabled={health?.ask ?? true} voice={health?.voice ?? false} />}
-          {view === 'privacy' && <PrivacyPage mock={health?.mode?.includes('mock') ?? true} receipts={health?.ask ?? true} onGoToMe={() => setView('me')} />}
-          {(view === 'team' || view === 'ask') && <img className="art" src="/brand/bear-plane.png" alt="" aria-hidden="true" />}
-        </aside>
+        {view !== 'admin' && (
+          <aside className="panel">
+            {view === 'map' && me && !me.visible && (
+              <p className="hint">
+                {copy.map.hidden}{' '}
+                <button type="button" className="link" onClick={() => setVisible({ visible: true })}>
+                  {copy.map.show}
+                </button>
+              </p>
+            )}
+            {view === 'map' && deviceParam && <DeviceSheet hash={deviceParam} onTrail={setTrail} onClose={() => pickDevice('')} />}
+            {view === 'map' && zoneParam && <ZoneCard zoneId={zoneParam} liveOnly={liveOnly} onClose={() => setZone('')} />}
+            {view === 'map' && zoneParam && health?.history && <ZoneHistory zoneId={zoneParam} />}
+            {view === 'map' && zoneParam && <ZoneDwell zoneId={zoneParam} />}
+            {view === 'me' && (
+              <>
+                <RegisterSheet />
+                <WalkEnrol />
+              </>
+            )}
+            {view === 'team' && <TeamPanel onSelectZone={showZone} onGoToMe={() => setView('me')} />}
+            {view === 'ask' && <AskBar enabled={health?.ask ?? true} voice={health?.voice ?? false} />}
+            {view === 'privacy' && <PrivacyPage mock={health?.mode?.includes('mock') ?? true} receipts={health?.ask ?? true} onGoToMe={() => setView('me')} />}
+            {(view === 'team' || view === 'ask') && <img className="art" src="/brand/bear-plane.png" alt="" aria-hidden="true" />}
+          </aside>
+        )}
       </main>
     </div>
   );

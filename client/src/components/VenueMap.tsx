@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { useTable } from 'spacetimedb/react';
 import { tables } from '../module_bindings';
 import { PLAN_HEIGHT, PLAN_WIDTH, VIEW_BOX, polygonPath } from '../geom';
@@ -26,7 +26,13 @@ type Props = {
   selectedDevice?: string;
   trail?: Step[];
   onSelectDevice: (hash: string) => void;
+  // Admin placing: a click anywhere on the plan reports plan units, and the
+  // given nodes are drawn as pins wherever the node table has them.
+  onPlanClick?: (x: number, y: number, floor: number) => void;
+  pins?: Pin[];
 };
+
+export type Pin = { nodeId: number; x: number; y: number; floor: number; pending?: boolean };
 
 type Trail = { x: number; y: number; t: number }[];
 
@@ -102,7 +108,7 @@ const Furniture = memo(function Furniture({ floor }: { floor: number }) {
   );
 });
 
-export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, selectedDevice, trail = [], onSelectDevice }: Props) {
+export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, selectedDevice, trail = [], onSelectDevice, onPlanClick, pins = [] }: Props) {
   const [counts] = useTable(tables.anonZoneCount);
   const [zones] = useTable(tables.zone);
   const [positions] = useTable(tables.position);
@@ -156,13 +162,22 @@ export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, se
   const dots = anonPoints.filter((p) => p.floor === floor);
   const floorTrail = trail.filter((s) => s.floor === floor);
   const view = usePanZoom(PLAN_WIDTH, PLAN_HEIGHT);
+  const floorPins = pins.filter((p) => p.floor === floor);
+  // The pan-zoom capture handler swallows the click that ends a drag, so this only sees taps.
+  const onClick = onPlanClick
+    ? (e: ReactMouseEvent<SVGSVGElement>) => {
+        const p = view.toPlan(e.clientX, e.clientY);
+        if (p.x < 0 || p.y < 0 || p.x > PLAN_WIDTH || p.y > PLAN_HEIGHT) return;
+        onPlanClick(Math.round(p.x), Math.round(p.y), floor);
+      }
+    : undefined;
 
   const sources = new Set(floorZones.map((z) => countByZone.get(z.zoneId)?.source).filter(Boolean));
   const surveyed = floorZones.map((z) => countByZone.get(z.zoneId)).find((c) => c?.source === 'survey');
 
   return (
-    <figure className={`map${mezz ? ' mezz' : ''}`}>
-      <svg ref={view.svg} viewBox={VIEW_BOX} role="img" aria-label={copy.floors[floor]} {...view.handlers}>
+    <figure className={`map${mezz ? ' mezz' : ''}${onPlanClick ? ' placing' : ''}`}>
+      <svg ref={view.svg} viewBox={VIEW_BOX} role="img" aria-label={copy.floors[floor]} {...view.handlers} onClick={onClick}>
         <defs>
           <radialGradient id="blipGlow">
             <stop offset="0" stopColor="#fff" stopOpacity="0.9" />
@@ -238,6 +253,15 @@ export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, se
             ))}
           </g>
         )}
+
+        {floorPins.map((p) => (
+          <g key={p.nodeId} className={`pin${p.pending ? ' pending' : ''}`} aria-label={copy.admin.pinLabel(p.nodeId)}>
+            <circle cx={p.x} cy={p.y} r={40} />
+            <text x={p.x} y={p.y + 76} textAnchor="middle">
+              {p.nodeId}
+            </text>
+          </g>
+        ))}
 
         {blips.map((p) => {
           const person = personById.get(p.personId)!;

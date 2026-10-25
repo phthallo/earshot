@@ -144,6 +144,7 @@ export function usePanZoom(planW: number, planH: number) {
     svg,
     zoomBy,
     reset,
+    toPlan,
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onClickCapture, onDoubleClick },
   };
 }

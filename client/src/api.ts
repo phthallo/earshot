@@ -58,8 +58,35 @@ export type DeviceReport = {
   addressWithheld: boolean;
 };
 
+// Admin routes carry the bridge's session cookie.
+const withCookie = (init: RequestInit = {}): RequestInit => ({ ...init, credentials: 'include' });
+
+export type Me = { login: string; avatarUrl: string; provider: 'github' | 'local' };
+export type AdminFloor = { floorKey: string; venueId: string; index: number; name: string; imageUrl: string; width: number; height: number };
+export type AdminVenue = { venueId: string; name: string; ownerLogin: string };
+export type PlaceBody = { nodeId: number; venueId: string; floor: number; x: number; y: number; label?: string };
+
 export const api = {
   health: () => call<Health>('/api/health'),
+  me: () => call<Me>('/api/auth/me', withCookie()),
+  logout: () => call<unknown>('/api/auth/logout', withCookie({ method: 'POST' })),
+  venues: async (): Promise<AdminVenue[]> => {
+    const body = await call<AdminVenue[] | { venues: AdminVenue[] }>('/api/admin/venues', withCookie());
+    return Array.isArray(body) ? body : (body?.venues ?? []);
+  },
+  createVenue: (venueId: string, name: string) => call<AdminVenue>('/api/admin/venues', withCookie(json({ venueId, name }))),
+  uploadFloor: (venueId: string, index: number, name: string, image: File) => {
+    const form = new FormData();
+    form.set('index', String(index));
+    form.set('name', name);
+    form.set('image', image);
+    return call<AdminFloor>(`/api/admin/venues/${encodeURIComponent(venueId)}/floors`, withCookie({ method: 'POST', body: form }));
+  },
+  placeNode: (body: PlaceBody) => call<unknown>('/api/admin/nodes/place', withCookie(json(body))),
+  rememberBoard: (mac: string, nodeId: number, venueId: string) => call<unknown>('/api/admin/boards', withCookie(json({ mac, nodeId, venueId }))),
+  forgetBoard: (mac: string) => call<unknown>(`/api/admin/boards/${encodeURIComponent(mac)}`, withCookie({ method: 'DELETE' })),
+  githubSignInUrl: () => `${BRIDGE_URL}/api/auth/github?return=${encodeURIComponent(location.href)}`,
+  exportUrl: (venueId: string) => `${BRIDGE_URL}/api/venues/${encodeURIComponent(venueId)}/export`,
   history: (zoneId: string, hours: number) =>
     call<{ zone: string; hours: number; bucketSeconds: number; points: HistoryPoint[] }>(`/api/history?zone=${encodeURIComponent(zoneId)}&hours=${hours}`),
   dwell: (zoneId: string) => call<ZoneDwell>(`/api/dwell?zone=${encodeURIComponent(zoneId)}`),

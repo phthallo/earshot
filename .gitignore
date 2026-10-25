@@ -21,4 +21,5 @@ data/fingerprints.json
 hacker-guide.pdf
 .DS_Store
 firmware/build-remote*/
+demo/out/
 .claude

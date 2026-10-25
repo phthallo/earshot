@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Earshot demo card</title>
+<style>
+@font-face { font-family: 'Alte Haas Grotesk'; src: url('../../client/public/fonts/AlteHaasGroteskRegular.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Alte Haas Grotesk'; src: url('../../client/public/fonts/AlteHaasGroteskBold.woff2') format('woff2'); font-weight: 700; }
+@font-face { font-family: 'Arapey'; src: url('../../client/public/fonts/Arapey-Italic.woff2') format('woff2'); font-style: italic; }
+:root {
+  --night: #11153d; --navy-2: #0f1d5b; --sky: #75bcff; --sky-2: #b6d3ff; --amber: #e7ac66; --green: #b9df74;
+  --ink: #f5f4f4; --ink-2: #c5d3f3; --ink-3: #98acd9;
+  --serif: 'Arapey', Georgia, serif; --grot: 'Alte Haas Grotesk', Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; }
+body { font-family: var(--grot); color: var(--ink); background: var(--night); }
+body.transparent { background: transparent; }
+.card { position: absolute; inset: 0; display: grid; align-content: center; padding: 0 160px; }
+
+/* Title and end cards: the wordmark and one line. */
+.title h1 { margin: 0; font: italic 400 208px/0.95 var(--serif); letter-spacing: -0.04em; }
+.title p { margin: 28px 0 0; font-size: 44px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-2); }
+.end small { display: block; margin-top: 36px; font-size: 32px; color: var(--ink-3); font-weight: 400; }
+
+/* Number cards: one figure, one label. */
+.number { text-align: left; }
+.number b { display: block; font: italic 400 300px/0.9 var(--serif); letter-spacing: -0.04em; }
+.number span { display: block; margin-top: 20px; font-size: 48px; font-weight: 700; color: var(--ink-2); letter-spacing: -0.03em; }
+
+/* Caption: a lower third on a transparent frame. */
+.caption { align-content: end; padding-bottom: 84px; }
+.caption p { margin: 0; display: inline-block; max-width: 1300px; padding: 22px 30px; background: rgba(8, 11, 35, 0.86); border-left: 6px solid var(--sky); font-size: 40px; line-height: 1.2; font-weight: 700; letter-spacing: -0.03em; }
+
+/* Architecture: six boxes on one line, revealed one at a time, with a packet
+   that walks the wire. The boxes do not move; they appear. */
+.arch { padding: 0 120px; }
+.arch h2 { margin: 0 0 72px; font: italic 400 84px/1 var(--serif); letter-spacing: -0.03em; }
+.row { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 26px; align-items: start; }
+.row::before { content: ''; position: absolute; left: 60px; right: 60px; top: 46px; height: 2px; background: var(--ink-3); opacity: 0.5; }
+.hop { position: relative; opacity: 0.18; }
+.hop.on { opacity: 1; }
+.hop i { display: block; width: 94px; height: 94px; border-radius: 50%; margin: 0 0 26px; background: var(--navy-2); border: 3px solid var(--sky); display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: 30px; color: var(--sky-2); letter-spacing: -0.02em; }
+.hop.warn i { border-color: var(--amber); color: var(--amber); }
+.hop.live i { background: var(--sky-2); color: var(--night); }
+.hop h3 { margin: 0 0 12px; font-size: 38px; letter-spacing: -0.03em; }
+.hop p { margin: 0; font-size: 26px; line-height: 1.3; color: var(--ink-2); max-width: 24ch; }
+.packet { position: absolute; top: 40px; width: 14px; height: 14px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 4px rgba(231, 172, 102, 0.3); margin-left: -7px; }
+.proof { position: absolute; left: 120px; right: 120px; bottom: 90px; font: 400 26px/1.4 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--ink-3); white-space: pre; opacity: 0; }
+.proof.on { opacity: 1; }
+.proof b { color: var(--green); font-weight: 400; }
+</style>
+</head>
+<body>
+<script>
+  const q = new URLSearchParams(location.search);
+  const kind = q.get('kind');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const root = document.body;
+  if (kind === 'title') {
+    root.innerHTML = `<div class="card title"><h1>Earshot</h1><p>${esc(q.get('line') || 'Know how full every room is.')}</p></div>`;
+  } else if (kind === 'end') {
+    root.innerHTML = `<div class="card title end"><h1>Earshot</h1><p>${esc(q.get('line') || 'Built at Cal Hacks 13.0.')}</p><small>${esc(q.get('small') || '')}</small></div>`;
+  } else if (kind === 'number') {
+    root.innerHTML = `<div class="card number"><b>${esc(q.get('n'))}</b><span>${esc(q.get('label'))}</span></div>`;
+  } else if (kind === 'caption') {
+    root.classList.add('transparent');
+    root.innerHTML = `<div class="card caption"><p>${esc(q.get('text'))}</p></div>`;
+  } else if (kind === 'arch') {
+    const hops = JSON.parse(q.get('hops'));
+    const marks = { phone: '))', node: 'S3', espnow: 'NOW', bridge: 'Go', db: 'DB', map: '3D' };
+    const cls = { node: 'warn', espnow: 'warn', map: 'live' };
+    root.innerHTML = `<div class="card arch"><h2>How it works</h2><div class="row">${hops
+      .map((h) => `<div class="hop ${cls[h.k] || ''}" data-k="${h.k}"><i>${marks[h.k]}</i><h3>${esc(h.title)}</h3><p>${esc(h.line)}</p></div>`)
+      .join('')}<div class="packet" hidden></div></div><pre class="proof">${q.get('proof') ? esc(q.get('proof')).replace(/\[\[(.+?)\]\]/g, '<b>$1</b>') : ''}</pre></div>`;
+    // seek(t): hops appear one per `step` seconds; the packet walks from the
+    // previous hop to the new one during the first 40% of each step.
+    const step = Number(q.get('step') || 3);
+    const els = [...document.querySelectorAll('.hop')];
+    const packet = document.querySelector('.packet');
+    const proof = document.querySelector('.proof');
+    const centers = () => els.map((e) => { const r = e.querySelector('i').getBoundingClientRect(); const row = document.querySelector('.row').getBoundingClientRect(); return r.x + r.width / 2 - row.x; });
+    window.seek = (t) => {
+      const n = Math.min(els.length - 1, Math.floor(t / step));
+      els.forEach((e, i) => e.classList.toggle('on', i <= n));
+      const c = centers();
+      if (n === 0) { packet.hidden = true; }
+      else {
+        const u = Math.min(1, (t - n * step) / (step * 0.4));
+        packet.hidden = u >= 1;
+        packet.style.left = c[n - 1] + (c[n] - c[n - 1]) * u + 'px';
+      }
+      proof.classList.toggle('on', t >= step * (els.length - 1) + step * 0.5);
+    };
+    window.seek(0);
+  }
+</script>
+</body>
+</html>

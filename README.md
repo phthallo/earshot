@@ -69,7 +69,7 @@ docker build -t earshot .
 docker run -p 8080:8080 -p 9000:9000 --env-file .env -v earshot-data:/app/data earshot
 ```
 
-Set `STDB_URI`, `STDB_DB`, `STDB_TOKEN` (the ingest identity's token), `MAC_SALT`, `SESSION_SECRET`, `PUBLIC_URL` and `CLIENT_URL` (both the public https origin) plus any API keys. `/app/data` is a volume for uploads, placed nodes and fingerprints. `BRIDGE_ARGS` replaces the default `--mock --mock-people`; set it to an empty string for live nodes only. The hosted instance is https://earshot.underwhelm.ing, deployed by Coolify from `main`.
+Set `STDB_URI`, `STDB_DB`, `STDB_TOKEN` (the ingest identity's token), `MAC_SALT`, `SESSION_SECRET`, `PUBLIC_URL` and `CLIENT_URL` (both the public https origin) plus any API keys. `/app/data` is a volume for uploads, placed nodes and fingerprints. The container runs live nodes only; set `BRIDGE_ARGS` to `--mock --mock-people` for the simulated crowd. The hosted instance is https://earshot.underwhelm.ing, deployed by Coolify from `main`.
 
 ## Tests
 

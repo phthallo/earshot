@@ -173,6 +173,10 @@ func main() {
 		go m.Run(ctx)
 		crowd = m
 		log.Printf("mock crowd running")
+	} else if err := client.Call(ctx, "clear_mock"); err != nil {
+		// Rows a previous --mock run left in the database would otherwise
+		// stay on the map as frozen demo counts.
+		log.Printf("clear_mock: %v", err)
 	}
 
 	h := &node.Handler{Batch: batch, Client: client}

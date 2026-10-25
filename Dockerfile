@@ -42,5 +42,5 @@ ENV HOME=/app/data/cache
 EXPOSE 8080 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fsS http://localhost:8080/api/health || exit 1
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-# Extra bridge flags come from BRIDGE_ARGS (default: simulated crowd on).
+# Extra bridge flags come from BRIDGE_ARGS (default: live nodes only).
 CMD []

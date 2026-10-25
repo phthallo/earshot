@@ -7,5 +7,6 @@ mkdir -p /app/data/cache /app/data/uploads
 for f in /app/data-seed/*; do
   [ -e "/app/data/$(basename "$f")" ] || cp -r "$f" /app/data/
 done
-# BRIDGE_ARGS replaces the default flags, e.g. "" for live nodes only.
-exec /app/bridge --data /app/data --static /app/public --http :8080 --tcp :9000 ${BRIDGE_ARGS---mock --mock-people} "$@"
+# Live nodes only by default. BRIDGE_ARGS adds flags, e.g. "--mock --mock-people"
+# for the simulated crowd. Unquoted on purpose so it splits into flags.
+exec /app/bridge --data /app/data --static /app/public --http :8080 --tcp :9000 ${BRIDGE_ARGS-} "$@"

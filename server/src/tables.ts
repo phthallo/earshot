@@ -26,6 +26,53 @@ export const zone = table(
   }
 );
 
+// Venues made in the admin page. The built-in Cal Hacks venue is "calhacks"
+// with an empty owner; the bridge is the only writer.
+export const venue = table(
+  { name: 'venue', public: true },
+  {
+    venueId: t.string().primaryKey(),
+    name: t.string(),
+    ownerLogin: t.string(),
+    createdAt: t.timestamp(),
+  }
+);
+
+export const floor = table(
+  { name: 'floor', public: true },
+  {
+    // "<venueId>/<index>"
+    floorKey: t.string().primaryKey(),
+    venueId: t.string(),
+    index: t.u8(),
+    name: t.string(),
+    imageUrl: t.string(),
+    // Plan units: image pixels for uploaded floors.
+    width: t.f32(),
+    height: t.f32(),
+  }
+);
+
+// Boards flashed from the browser, by MAC.
+export const board = table(
+  { name: 'board', public: true },
+  {
+    mac: t.string().primaryKey(),
+    nodeId: t.u16(),
+    ownerLogin: t.string(),
+    venueId: t.string(),
+    flashedAt: t.timestamp(),
+  }
+);
+
+export const venueNode = table(
+  { name: 'venue_node', public: true },
+  {
+    nodeId: t.u16().primaryKey(),
+    venueId: t.string(),
+  }
+);
+
 // Per-node motion, one row per node, overwritten every second.
 export const zoneActivity = table(
   { name: 'zone_activity', public: true },
@@ -239,6 +286,10 @@ export const tickSchedule = table(
 export const spacetimedb = schema({
   node,
   zone,
+  venue,
+  floor,
+  board,
+  venueNode,
   zoneActivity,
   anonZoneCount,
   anonPoint,

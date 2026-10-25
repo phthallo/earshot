@@ -3,7 +3,7 @@ import spacetimedb from './tables';
 import { TICK_MS } from './reducers/tick';
 
 export { default } from './tables';
-export { registerIngest, addIngest, seedNodes, seedZones } from './reducers/venue';
+export { registerIngest, addIngest, seedNodes, seedZones, upsertVenue, upsertFloor, placeNode, rememberBoard, forgetBoard } from './reducers/venue';
 export { pushMotionBatch, pushSightingsBatch, pushAnonPoints, pushCsi } from './reducers/ingest';
 export { upsertPerson, setTeam, setVisible, startPairing, cancelPairing, bindMacFor, unbindDevice, deleteMe, setAppPosition, setSurveyCount } from './reducers/people';
 export { startWalk, cancelWalk, finishWalk, matchWalk, resetWalks } from './reducers/walks';

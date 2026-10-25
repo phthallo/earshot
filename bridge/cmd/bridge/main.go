@@ -196,7 +196,7 @@ func main() {
 	if adm.GithubClientID == "" {
 		log.Printf("GITHUB_CLIENT_ID unset: admin sign-in uses the local account")
 	}
-	srv := &api.Server{Client: client, Salt: salt, Mode: mode, FP: fps, Dwell: stays, Dots: dots, Admin: adm}
+	srv := &api.Server{Client: client, Salt: salt, Mode: mode, FP: fps, Dwell: stays, Dots: dots, Admin: adm, ClientURL: adm.ClientURL}
 	if pid, key := config.Get("MOSS_PROJECT_ID", ""), config.Get("MOSS_PROJECT_KEY", ""); pid != "" && key != "" {
 		docs, err := moss.LoadDocs(filepath.Join(*dataDir, "guide.json"))
 		if err != nil {

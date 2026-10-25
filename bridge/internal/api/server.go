@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"net/url"
 	"strings"
 	"time"
 
@@ -45,6 +46,9 @@ type Server struct {
 	FP      *fp.Store
 	Admin   *admin.Server
 	Mode    string
+	// ClientURL is the one non-localhost origin that may send the session
+	// cookie; other origins get the open, credential-less CORS header.
+	ClientURL string
 }
 
 var macRe = regexp.MustCompile(`^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$`)
@@ -70,14 +74,14 @@ func (s *Server) Handler() http.Handler {
 	if s.Admin != nil {
 		s.Admin.Register(mux)
 	}
-	return cors(mux)
+	return cors(mux, s.ClientURL)
 }
 
-// cors echoes the Origin so the admin session cookie can travel with
-// credentialed requests; without one anything may call the API.
-func cors(h http.Handler) http.Handler {
+// cors echoes the Origin, with credentials allowed, only for the configured
+// client origin and localhost; anything else may still read the public API.
+func cors(h http.Handler, clientURL string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if origin := r.Header.Get("Origin"); origin != "" {
+		if origin := r.Header.Get("Origin"); origin != "" && trustedOrigin(origin, clientURL) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.Header().Add("Vary", "Origin")
@@ -190,6 +194,18 @@ func (s *Server) device(w http.ResponseWriter, r *http.Request) {
 		withheld = true
 	}
 	writeJSON(w, 200, map[string]any{"device": d, "day": day, "addressWithheld": withheld})
+}
+
+func trustedOrigin(origin, clientURL string) bool {
+	if clientURL != "" && strings.EqualFold(strings.TrimRight(origin, "/"), strings.TrimRight(clientURL, "/")) {
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	host := u.Hostname()
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 
 func isLoopback(remoteAddr string) bool {

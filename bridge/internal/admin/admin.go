@@ -51,7 +51,14 @@ func (s *Server) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/admin/boards", s.withSession(s.rememberBoard))
 	mux.HandleFunc("DELETE /api/admin/boards/{mac}", s.withSession(s.forgetBoard))
 	mux.HandleFunc("GET /api/venues/calhacks/export", s.export)
-	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join(s.DataDir, "uploads")))))
+	files := http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join(s.DataDir, "uploads"))))
+	mux.HandleFunc("GET /uploads/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		files.ServeHTTP(w, r)
+	})
 }
 
 // SeedCalhacks writes the built-in venue and its two floors so the admin page
@@ -64,7 +71,14 @@ func (s *Server) SeedCalhacks(ctx context.Context) error {
 	if err := s.Client.Call(ctx, "upsert_floor", Calhacks, 1, "Ground floor", "/venue-main.jpg", w, h); err != nil {
 		return err
 	}
-	return s.Client.Call(ctx, "upsert_floor", Calhacks, 2, "Mezzanine", "/venue-mezz.jpg", w, h)
+	if err := s.Client.Call(ctx, "upsert_floor", Calhacks, 2, "Mezzanine", "/venue-mezz.jpg", w, h); err != nil {
+		return err
+	}
+	ids := make([]int, 0, len(s.Venue.Nodes.Nodes))
+	for _, n := range s.Venue.Nodes.Nodes {
+		ids = append(ids, n.NodeID)
+	}
+	return s.Client.Call(ctx, "claim_nodes", Calhacks, ids)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -76,8 +90,10 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 // Reducer errors arrive as "POST ...: 400 <message>". Keep the message.
 func friendly(err error) string {
 	msg := err.Error()
-	if i := strings.LastIndex(msg, ": 4"); i >= 0 && len(msg) > i+6 {
-		return strings.TrimSpace(msg[i+6:])
+	for _, code := range []string{": 4", ": 5"} {
+		if i := strings.LastIndex(msg, code); i >= 0 && len(msg) > i+6 {
+			return strings.TrimSpace(msg[i+6:])
+		}
 	}
 	return msg
 }

@@ -13,7 +13,7 @@ GitHub OAuth web flow, handled by the bridge.
 | `GET /api/auth/me` | `{ login, avatarUrl, provider }` or 401. |
 | `POST /api/auth/logout` | Clears the cookie. |
 
-CORS: when a request carries `Origin`, the bridge echoes it and sets `Access-Control-Allow-Credentials: true`. The client sends `credentials: 'include'`.
+CORS: the bridge echoes `Origin` with `Access-Control-Allow-Credentials: true` only for `CLIENT_URL` and localhost origins; any other origin gets `*` without credentials. The client sends `credentials: 'include'`.
 
 ## Venues and floors
 
@@ -39,7 +39,7 @@ Bridge routes, cookie required, JSON bodies unless noted:
 | `GET /api/admin/venues` | | `[{venueId, name, ownerLogin, createdAt}]`: venues owned by the caller, plus `calhacks`. Floors and boards come from the `floor` and `board` tables over the SpacetimeDB subscription. |
 | `POST /api/admin/venues` | `{ venueId, name }` | `venueId` is a slug `[a-z0-9-]{2,40}`. 409 if taken by someone else. |
 | `POST /api/admin/venues/{venueId}/floors` | multipart: `index`, `name`, `image` (png/jpg/webp, max 10 MB) | Saves to `data/uploads/<venueId>/<index>.<ext>` (gitignored), served at `/uploads/...`, upserts the floor row with the image's pixel size. `imageUrl` is absolute: `PUBLIC_URL` or the request origin plus the upload path. The Cal Hacks floors keep `/venue-main.jpg` and `/venue-mezz.jpg`, served by the client. |
-| `POST /api/admin/nodes/place` | `{ nodeId, venueId, floor, x, y, label? }` | Upserts the node row and `venue_node`. For `calhacks` the bridge also updates its in-memory node list so anonymous dots and the mock use the new position. Plan units: for `calhacks` the 2956x1380 plan; for uploaded floors, image pixels. |
+| `POST /api/admin/nodes/place` | `{ nodeId, venueId, floor, x, y, label? }` | Upserts the node row and `venue_node`. A node already tied to another venue is refused. For `calhacks` the bridge also updates its in-memory node list so anonymous dots and the mock use the new position, and writes the placement to `data/placed-nodes.json` (gitignored), which overrides `nodes.json` at the next start. Plan units: for `calhacks` the 2956x1380 plan; for uploaded floors, image pixels. |
 | `POST /api/admin/boards` | `{ mac, nodeId, venueId }` | remember a flashed board. |
 | `DELETE /api/admin/boards/{mac}` | | forget it. Only the login that remembered it may. |
 | `GET /api/venues/calhacks/export` | | JSON bundle of the hardcoded render: `{ venueId, name, plan: {width, height, metersPerUnit}, floors: [{index, name, imageUrl}], zones, nodes, landmarks }`. Served as a download (`Content-Disposition: attachment; filename=calhacks-venue.json`). No auth. |

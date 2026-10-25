@@ -57,7 +57,34 @@ func Load(dir string) (*Venue, error) {
 	if err := readJSON(filepath.Join(dir, "zones.json"), &v.Zones); err != nil {
 		return nil, err
 	}
+	// Placements made from the admin page live beside nodes.json so the
+	// hand-written file keeps its comment and formatting.
+	var placed []Node
+	if err := readJSON(filepath.Join(dir, placedFile), &placed); err == nil {
+		for _, p := range placed {
+			v.Nodes.Nodes = upsertNode(v.Nodes.Nodes, p)
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
 	return v, nil
+}
+
+const placedFile = "placed-nodes.json"
+
+// upsertNode returns a new slice with n replacing the node of the same id,
+// or appended. Callers that range over the old slice without a lock keep
+// seeing a consistent snapshot.
+func upsertNode(nodes []Node, n Node) []Node {
+	out := make([]Node, len(nodes), len(nodes)+1)
+	copy(out, nodes)
+	for i := range out {
+		if out[i].NodeID == n.NodeID {
+			out[i] = n
+			return out
+		}
+	}
+	return append(out, n)
 }
 
 func readJSON(path string, out any) error {
@@ -125,18 +152,15 @@ func (v *Venue) MoveNode(ctx context.Context, c *stdb.Client, nodeID int, zoneID
 }
 
 // PlaceNode puts a node at x, y on floor, adding it when nodes.json does not
-// know it, and re-seeds the row. The zone becomes whichever polygon on that
+// know it, records the placement in placed-nodes.json so it survives a
+// restart, and re-seeds the row. The zone becomes whichever polygon on that
 // floor contains the point, or stays as it was.
 func (v *Venue) PlaceNode(ctx context.Context, c *stdb.Client, nodeID, floor int, x, y float64, label string) error {
-	var n *Node
-	for i := range v.Nodes.Nodes {
-		if v.Nodes.Nodes[i].NodeID == nodeID {
-			n = &v.Nodes.Nodes[i]
+	n := Node{NodeID: nodeID, Label: fmt.Sprintf("Node %d", nodeID)}
+	for _, old := range v.Nodes.Nodes {
+		if old.NodeID == nodeID {
+			n = old
 		}
-	}
-	if n == nil {
-		v.Nodes.Nodes = append(v.Nodes.Nodes, Node{NodeID: nodeID, Label: fmt.Sprintf("Node %d", nodeID)})
-		n = &v.Nodes.Nodes[len(v.Nodes.Nodes)-1]
 	}
 	n.Floor, n.X, n.Y = floor, x, y
 	if label != "" {
@@ -146,6 +170,21 @@ func (v *Venue) PlaceNode(ctx context.Context, c *stdb.Client, nodeID, floor int
 		if v.Zones[i].Floor == floor && v.Zones[i].Contains(Point{x, y}) {
 			n.ZoneID = v.Zones[i].ZoneID
 			break
+		}
+	}
+	v.Nodes.Nodes = upsertNode(v.Nodes.Nodes, n)
+	if v.Dir != "" {
+		var placed []Node
+		path := filepath.Join(v.Dir, placedFile)
+		if err := readJSON(path, &placed); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		b, err := json.MarshalIndent(upsertNode(placed, n), "", "  ")
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(path, append(b, '\n'), 0o644); err != nil {
+			return err
 		}
 	}
 	return c.Call(ctx, "seed_nodes", []nodeIn{{n.NodeID, n.ZoneID, n.Label, n.Floor, n.X, n.Y, n.NodeID >= 100}})

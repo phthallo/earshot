@@ -65,7 +65,7 @@ podman run -d --name venuemap-tsdb -p 5433:5432 -e POSTGRES_PASSWORD=venuemap do
 ## Run it with hardware
 
 - Laptop or Raspberry Pi sniffer: put the wifi card in monitor mode (commands in `bridge/internal/sniff/sniff.go`), then `bridge --node --iface mon0 --id 101 --connect <bridge-host>:9000`.
-- ESP32-S3: flash `firmware/`, then `bridge --serial /dev/ttyACM0`.
+- ESP32-S3: flash `firmware/` with `idf.py`, or open the Venues page in Chrome and flash from the browser, then `bridge --serial /dev/ttyACM0`. The Venues page also places nodes on the plan; see `docs/ADMIN.md`.
 - Android phone: build `android/`, sign in with the pair code from the Me tab.
 
 Node ids 101, 102 and 103 are the three live nodes clustered in the hardware area (`data/nodes.json`). Real nodes drop in next to the mock crowd, and the UI shows which zones are live.
@@ -80,7 +80,7 @@ firmware/  ESP-IDF node firmware
 android/   Wifi fingerprint app (Kotlin, Compose)
 agent/     Fetch.ai concierge agent
 data/      Venue geometry, zones, mock attendees, crowd rhythm
-docs/      Architecture and hardware notes
+docs/      Architecture, style guide, venue admin and hardware notes
 ```
 
 ## Tests

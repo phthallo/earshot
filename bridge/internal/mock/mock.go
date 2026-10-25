@@ -173,8 +173,12 @@ func (m *Mock) Setup(ctx context.Context) error {
 		mac := fmt.Sprintf("02:00:00:00:00:%02x", i+1)
 		h := node.HashMAC(m.salt, mac)
 		if id, ok := ids[a.DisplayName]; ok {
+			// A second bridge against the same database (hosted plus laptop)
+			// mints its own identities for these attendees, so the demo phone
+			// is usually bound to the earlier copy already. The walker's
+			// sightings still land on that copy, so keep going.
 			if err := m.client.Call(ctx, "bind_mac_for", id, h); err != nil {
-				return fmt.Errorf("bind_mac_for %s: %w", a.DisplayName, err)
+				log.Printf("mock: bind_mac_for %s: %v (keeping the existing pairing)", a.DisplayName, err)
 			}
 		}
 		w := m.newWalker(1)

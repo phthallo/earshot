@@ -52,6 +52,7 @@ func main() {
 		tcp        = flag.String("tcp", ":9000", "listen for sniffer nodes here, empty to disable")
 		httpAddr   = flag.String("http", ":8080", "HTTP API address")
 		dataDir    = flag.String("data", "", "directory with nodes.json etc (default ../data relative to the binary's repo)")
+		static     = flag.String("static", "", "serve the built web client (client/dist) from this directory on --http too")
 		envFile    = flag.String("env", "", "path to .env (default: repo root .env)")
 		// node mode
 		nodeMode  = flag.Bool("node", false, "run as a sniffer node instead of the bridge")
@@ -160,9 +161,8 @@ func main() {
 	batch := ingest.New(client, 2*time.Second)
 	go batch.Run(ctx)
 
-	mode := "live"
+	var crowd *mock.Mock
 	if *mockMode {
-		mode = "mock"
 		m, err := mock.New(v, client, batch, salt, cacheDir, *mockPeople)
 		if err != nil {
 			log.Fatalf("mock: %v", err)
@@ -171,6 +171,7 @@ func main() {
 			log.Fatalf("mock setup: %v", err)
 		}
 		go m.Run(ctx)
+		crowd = m
 		log.Printf("mock crowd running")
 	}
 
@@ -183,6 +184,16 @@ func main() {
 		log.Printf("no zone fingerprints yet (walk with --survey --serial or the app's learn mode): real nodes stay where nodes.json puts them")
 	}
 	stays := &dwell.Tracker{}
+	// Each phone's day survives a restart: saved every minute and at shutdown.
+	dwellFile := filepath.Join(*dataDir, "dwell.json")
+	if err := stays.Load(dwellFile); err != nil {
+		log.Printf("dwell: %v (starting empty)", err)
+	}
+	dwellSaved := make(chan struct{})
+	go func() {
+		defer close(dwellSaved)
+		stays.Persist(ctx, dwellFile, time.Minute, log.Printf)
+	}()
 	dots := &anon.Tracker{Venue: v, VenueID: admin.Calhacks, Dwell: stays}
 	go dots.Run(ctx, client, 2*time.Second)
 	venues := &anon.Registry{Client: client, Local: admin.Calhacks, Built: dots, Interval: 2 * time.Second}
@@ -226,7 +237,13 @@ func main() {
 	if adm.GithubClientID == "" {
 		log.Printf("GITHUB_CLIENT_ID unset: admin sign-in uses the local account")
 	}
-	srv := &api.Server{Client: client, Salt: salt, Mode: mode, FP: fps, Dwell: stays, Dots: dots, Admin: adm, ClientURL: adm.ClientURL}
+	srv := &api.Server{Client: client, Salt: salt, FP: fps, Dwell: stays, Dots: dots, Admin: adm, ClientURL: adm.ClientURL, Static: *static}
+	if *static != "" {
+		log.Printf("serving web client from %s", *static)
+	}
+	if crowd != nil {
+		adm.Mock, srv.Mock = crowd, crowd
+	}
 	if pid, key := config.Get("MOSS_PROJECT_ID", ""), config.Get("MOSS_PROJECT_KEY", ""); pid != "" && key != "" {
 		docs, err := moss.LoadDocs(filepath.Join(*dataDir, "guide.json"))
 		if err != nil {
@@ -248,12 +265,22 @@ func main() {
 	} else {
 		log.Printf("TIGER_DSN unset: zone history disabled")
 	}
-	if key := config.Get("ANTHROPIC_API_KEY", ""); key != "" && !strings.HasSuffix(key, "...") {
-		a := ask.New(client, key, config.Get("ANTHROPIC_MODEL", "claude-opus-5-5"))
-		a.Search, a.History, a.Dwell = srv.Search, srv.History, stays
-		srv.Ask = a
+	var asker *ask.Asker
+	if base, key := config.Get("OPENAI_BASE_URL", ""), config.Get("OPENAI_API_KEY", ""); base != "" && key != "" {
+		model := config.Get("OPENAI_MODEL", "anthropic/claude-sonnet-5.5")
+		asker = ask.NewOpenAI(client, base, key, model)
+		log.Printf("ask: %s via %s", model, base)
+	} else if key := config.Get("ANTHROPIC_API_KEY", ""); key != "" && !strings.HasSuffix(key, "...") {
+		asker = ask.New(client, key, config.Get("ANTHROPIC_MODEL", "claude-opus-5-5"))
 	} else {
-		log.Printf("ANTHROPIC_API_KEY unset: /api/ask disabled")
+		log.Printf("ANTHROPIC_API_KEY and OPENAI_BASE_URL unset: /api/ask disabled")
+	}
+	if asker != nil {
+		asker.Search, asker.History, asker.Dwell = srv.Search, srv.History, stays
+		if crowd != nil {
+			asker.MockOn = crowd.Enabled
+		}
+		srv.Ask = asker
 	}
 	if key := config.Get("CARTESIA_API_KEY", ""); key != "" && !strings.HasSuffix(key, "...") {
 		srv.Voice = voice.New(key, config.Get("CARTESIA_VOICE_ID", ""))
@@ -272,6 +299,7 @@ func main() {
 	if err := hs.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+	<-dwellSaved
 }
 
 // repoRoot walks up from the working directory to the folder holding data/.

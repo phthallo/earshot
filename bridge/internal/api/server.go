@@ -8,9 +8,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
-	"net/url"
 	"strings"
 	"time"
 
@@ -25,7 +28,7 @@ import (
 )
 
 type Asker interface {
-	Ask(ctx context.Context, question string) (answer string, err error)
+	Ask(ctx context.Context, question string, liveOnly bool) (answer string, err error)
 	PrivacyReceipt(ctx context.Context, personID int) (string, error)
 }
 
@@ -45,10 +48,12 @@ type Server struct {
 	Dots    *anon.Tracker  // nil without real nodes
 	FP      *fp.Store
 	Admin   *admin.Server
-	Mode    string
+	Mock    admin.MockCrowd // nil without --mock
 	// ClientURL is the one non-localhost origin that may send the session
 	// cookie; other origins get the open, credential-less CORS header.
 	ClientURL string
+	// Static is the built web client (client/dist). Empty serves the API only.
+	Static string
 }
 
 var macRe = regexp.MustCompile(`^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$`)
@@ -74,7 +79,37 @@ func (s *Server) Handler() http.Handler {
 	if s.Admin != nil {
 		s.Admin.Register(mux)
 	}
+	if s.Static != "" {
+		mux.Handle("/", spa(s.Static))
+	}
 	return cors(mux, s.ClientURL)
+}
+
+// spa serves the built client: real files as they are, every other path as
+// index.html so the client's own routing (/venues, /venues/<id>) works on a
+// fresh load. API paths that matched nothing above stay 404.
+func spa(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	index := filepath.Join(dir, "index.html")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path
+		if strings.HasPrefix(p, "/api/") || strings.HasPrefix(p, "/uploads/") {
+			http.NotFound(w, r)
+			return
+		}
+		if p != "/" {
+			if st, err := os.Stat(filepath.Join(dir, filepath.FromSlash(path.Clean(p)))); err == nil && !st.IsDir() {
+				if strings.HasPrefix(p, "/assets/") {
+					// Vite hashes these file names.
+					w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+				}
+				files.ServeHTTP(w, r)
+				return
+			}
+		}
+		w.Header().Set("Cache-Control", "no-cache")
+		http.ServeFile(w, r, index)
+	})
 }
 
 // cors echoes the Origin, with credentials allowed, only for the configured
@@ -105,7 +140,11 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, 200, map[string]any{"ok": true, "mode": s.Mode, "ask": s.Ask != nil, "voice": s.Voice != nil, "search": s.Search != nil, "history": s.History != nil})
+	mode, mockOn := "live", false
+	if s.Mock != nil && s.Mock.Enabled() {
+		mode, mockOn = "mock", true
+	}
+	writeJSON(w, 200, map[string]any{"ok": true, "mode": mode, "mock": mockOn, "mockAvailable": s.Mock != nil, "ask": s.Ask != nil, "voice": s.Voice != nil, "search": s.Search != nil, "history": s.History != nil})
 }
 
 // search is the guide index straight from the client, no Claude in between.
@@ -263,6 +302,8 @@ func (s *Server) ask(w http.ResponseWriter, r *http.Request) {
 	}
 	var in struct {
 		Question string `json:"question"`
+		// True when the viewer has the map's "Live only" switch on.
+		LiveOnly bool `json:"liveOnly"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || strings.TrimSpace(in.Question) == "" {
 		writeJSON(w, 400, map[string]string{"error": "Type a question."})
@@ -270,7 +311,7 @@ func (s *Server) ask(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 	defer cancel()
-	ans, err := s.Ask.Ask(ctx, in.Question)
+	ans, err := s.Ask.Ask(ctx, in.Question, in.LiveOnly)
 	if err != nil {
 		log.Printf("ask: %v", err)
 		writeJSON(w, 502, map[string]string{"error": "Couldn't get an answer. Try again."})

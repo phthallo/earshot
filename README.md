@@ -1,31 +1,7 @@
 # Earshot
 
-Earshot is a live crowd map built from the wifi probe frames phones already send. $5 ESP32 nodes, one per zone, hear phones within roughly 30 m. The map shows zone counts against capacity and anonymous dots, in a 3D scene or a 2D plan, and it updates every 2 s.
-
-We ran it at Cal Hacks 13.0 at the Palace of Fine Arts in San Francisco, 24 to 25 Oct 2026. One live ESP32 sat on the mezzanine. Over the evening it heard about 400 distinct phones, with 60 to 75 in range at any moment. The rest of the hall is a simulated crowd, and the UI labels it as simulated. The venue has 14 zones and 24 planned node positions.
-
-A Go bridge on a laptop salts and hashes each phone's MAC address. The raw MAC stays only in bridge memory and is dropped 10 s after the phone goes quiet. The database stores only hashes, zone counts and grid cells. A dot gets a name only if its owner registers.
-
+Map, profile and query large, messy crowds and their history with affordable ESP32s.
 Questions and privacy receipts use Claude, spoken answers use Cartesia, the concierge agent runs on Fetch.ai, the venue guide is indexed in Moss and zone history lives in TigerData.
-
-Landing page: `client/public/landing/index.html`, served at `/landing/index.html` by the dev server. Published link: https://claude.ai/artifact/HxcdrRsN6hEQmDCGP97zmB
-
-## What is real and what is simulated
-
-| On the map | Where it comes from | Label in the UI |
-|---|---|---|
-| Zone heat across the venue | A mock crowd replayer (`bridge --mock`), weighted by time of day from `data/rhythm.json` | "Simulated crowd" |
-| Zone counts from a walk-through | `bridge --survey`: someone walks the venue with an ESP32 on USB or a laptop in monitor mode and types the zone they are in | "Surveyed hh:mm" |
-| Zone counts at a live node | Real sniffers (laptop, Raspberry Pi, ESP32) counting distinct hashed MACs | "Live count" |
-| Named blips | People who registered and paired their phone at a node, or who run the Android app | star, dashed ring for the app |
-
-Nothing on the map is named without registration. Nodes send each phone's MAC and its salted hash. The database stores only the hash and the bridge keeps the MAC in memory.
-
-Tapping an unregistered dot shows whether that phone's MAC is randomised, which nodes hear it and how strongly, and its day: first heard, zone it is in, return visits, zones it stayed in. The MAC itself is shown only to a browser on the bridge host.
-
-Phones keep one randomised MAC per wifi network. So the bridge can also report per zone how many distinct phones visited, how many came back, and how long they typically stayed.
-
-See `docs/ARCHITECTURE.md` for the data flow and the privacy page in the app for what is stored per person.
 
 ## Where it applies
 
@@ -50,7 +26,7 @@ Open http://localhost:5173. The map fills with the simulated crowd and eight sam
 
 Every API key is optional.
 
-- `ANTHROPIC_API_KEY` in `.env` turns on the Ask tab and privacy receipts. Without it the map, registration, team view and privacy summary all still work.
+- `ANTHROPIC_API_KEY` in `.env` turns on the Ask box under the map panel and privacy receipts. Without it the map, registration and privacy summary all still work. `OPENAI_BASE_URL` plus `OPENAI_API_KEY` reach Claude through an OpenAI-compatible proxy instead (for example `https://ai.hackclub.com/proxy/v1` with `OPENAI_MODEL=anthropic/claude-sonnet-5.5`).
 - `CARTESIA_API_KEY` turns on the microphone and spoken answers.
 - `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY` index `data/guide.json` (zones, schedule, workshops, prizes) in Moss and give Ask a `search_guide` tool.
 - `TIGER_DSN` points at a Postgres (TigerData or local Timescale). The bridge samples every zone's count into it every 30 seconds, the map shows a six hour sparkline for the selected zone, and Ask gets a `zone_history` tool for "when is food least busy".
@@ -83,6 +59,17 @@ agent/     Fetch.ai concierge agent
 data/      Venue geometry, zones, mock attendees, crowd rhythm
 docs/      Architecture, style guide, venue admin and hardware notes
 ```
+
+## Deploy
+
+`Dockerfile` builds one image: the bridge on port 8080 serving the API and the built client, and the relay port 9000. The client is built against maincloud (`VITE_STDB_URI`, `VITE_STDB_DB` build args) and talks to the origin it is served from.
+
+```sh
+docker build -t earshot .
+docker run -p 8080:8080 -p 9000:9000 --env-file .env -v earshot-data:/app/data earshot
+```
+
+Set `STDB_URI`, `STDB_DB`, `STDB_TOKEN` (the ingest identity's token), `MAC_SALT`, `SESSION_SECRET`, `PUBLIC_URL` and `CLIENT_URL` (both the public https origin) plus any API keys. `/app/data` is a volume for uploads, placed nodes and fingerprints. `BRIDGE_ARGS` replaces the default `--mock --mock-people`; set it to an empty string for live nodes only. The hosted instance is https://earshot.underwhelm.ing, deployed by Coolify from `main`.
 
 ## Tests
 

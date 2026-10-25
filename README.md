@@ -42,7 +42,7 @@ podman run -d --name venuemap-tsdb -p 5433:5432 -e POSTGRES_PASSWORD=venuemap do
 
 - Laptop or Raspberry Pi sniffer: put the wifi card in monitor mode (commands in `bridge/internal/sniff/sniff.go`), then `bridge --node --iface mon0 --id 101 --connect <bridge-host>:9000`.
 - ESP32-S3: flash `firmware/` with `idf.py`, or open the Venues page in Chrome and flash from the browser, then `bridge --serial /dev/ttyACM0`. The Venues page also places nodes on the plan; see `docs/ADMIN.md`.
-- Hosted bridge, boards elsewhere: make a relay key on the venue's page and run the command it prints at the venue, `bridge --relay --serial /dev/ttyACM0 --connect <host>:9000 --key es_…`. One bridge serves any number of venues; each relay only speaks for the nodes placed in its venue.
+- Hosted bridge, boards elsewhere: make a relay key on the venue's page and run the command it prints at the venue from a checkout of this repo, `cd bridge && go run ./cmd/bridge --relay --serial /dev/ttyACM0 --connect <host>:9000 --key es_…`. A bare `bridge` is Linux's ethernet bridge tool from iproute, not this program. One bridge serves any number of venues; each relay only speaks for the nodes placed in its venue.
 - Android phone: build `android/`, sign in with the pair code from the Me tab.
 
 Node ids 101, 102 and 103 are the three live nodes clustered in the hardware area (`data/nodes.json`). Real nodes drop in next to the mock crowd, and the UI shows which zones are live.

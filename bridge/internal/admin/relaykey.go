@@ -47,7 +47,7 @@ func (s *Server) rotateKey(w http.ResponseWriter, r *http.Request, sess Session)
 	host := s.relayHost(r)
 	writeJSON(w, 200, map[string]string{
 		"key":     key,
-		"command": "bridge --relay --serial /dev/ttyACM0 --connect " + host + ":" + relayPort + " --key " + key,
+		"command": "cd bridge && go run ./cmd/bridge --relay --serial /dev/ttyACM0 --connect " + host + ":" + relayPort + " --key " + key,
 	})
 }
 

@@ -51,8 +51,10 @@ Bridge routes, cookie required, JSON bodies unless noted:
 A hosted bridge cannot see a USB board, so each venue runs a relay next to its boards:
 
 ```
-bridge --relay --serial /dev/ttyACM0 --connect api.example.com:9000 --key es_…
+cd bridge && go run ./cmd/bridge --relay --serial /dev/ttyACM0 --connect api.example.com:9000 --key es_…
 ```
+
+Run it from a checkout of this repo. `bridge` alone resolves to iproute's ethernet bridge tool on Linux.
 
 The Venues page prints that command when a key is made (`RELAY_KEY` in the environment works instead of `--key`). The relay opens the port, dials the bridge's TCP listener, sends `{"t":"auth","key":"es_…"}` and then forwards the boards' JSON lines unchanged; bridge commands (walk capture on/off) flow back to the first port. It reconnects on either side.
 

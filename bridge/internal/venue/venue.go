@@ -124,6 +124,33 @@ func (v *Venue) MoveNode(ctx context.Context, c *stdb.Client, nodeID int, zoneID
 	return fmt.Errorf("zone %q is not in zones.json", zoneID)
 }
 
+// PlaceNode puts a node at x, y on floor, adding it when nodes.json does not
+// know it, and re-seeds the row. The zone becomes whichever polygon on that
+// floor contains the point, or stays as it was.
+func (v *Venue) PlaceNode(ctx context.Context, c *stdb.Client, nodeID, floor int, x, y float64, label string) error {
+	var n *Node
+	for i := range v.Nodes.Nodes {
+		if v.Nodes.Nodes[i].NodeID == nodeID {
+			n = &v.Nodes.Nodes[i]
+		}
+	}
+	if n == nil {
+		v.Nodes.Nodes = append(v.Nodes.Nodes, Node{NodeID: nodeID, Label: fmt.Sprintf("Node %d", nodeID)})
+		n = &v.Nodes.Nodes[len(v.Nodes.Nodes)-1]
+	}
+	n.Floor, n.X, n.Y = floor, x, y
+	if label != "" {
+		n.Label = label
+	}
+	for i := range v.Zones {
+		if v.Zones[i].Floor == floor && v.Zones[i].Contains(Point{x, y}) {
+			n.ZoneID = v.Zones[i].ZoneID
+			break
+		}
+	}
+	return c.Call(ctx, "seed_nodes", []nodeIn{{n.NodeID, n.ZoneID, n.Label, n.Floor, n.X, n.Y, n.NodeID >= 100}})
+}
+
 // Contains reports whether p lies inside the zone polygon (even-odd rule).
 func (z *Zone) Contains(p Point) bool {
 	in := false

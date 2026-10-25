@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"venuemap/bridge/internal/admin"
 	"venuemap/bridge/internal/anon"
 	"venuemap/bridge/internal/dwell"
 	"venuemap/bridge/internal/fp"
@@ -42,6 +43,7 @@ type Server struct {
 	Dwell   *dwell.Tracker // nil without real nodes
 	Dots    *anon.Tracker  // nil without real nodes
 	FP      *fp.Store
+	Admin   *admin.Server
 	Mode    string
 }
 
@@ -65,14 +67,25 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/fp/learn", s.fpLearn)
 	mux.HandleFunc("POST /api/fp/forget", s.fpForget)
 	mux.HandleFunc("POST /api/fp/locate", s.fpLocate)
+	if s.Admin != nil {
+		s.Admin.Register(mux)
+	}
 	return cors(mux)
 }
 
+// cors echoes the Origin so the admin session cookie can travel with
+// credentialed requests; without one anything may call the API.
 func cors(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Add("Vary", "Origin")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
 		w.Header().Set("Access-Control-Allow-Headers", "content-type, authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

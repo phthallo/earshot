@@ -22,6 +22,7 @@ import (
 	"syscall"
 	"time"
 
+	"venuemap/bridge/internal/admin"
 	"venuemap/bridge/internal/anon"
 	"venuemap/bridge/internal/api"
 	"venuemap/bridge/internal/ask"
@@ -179,7 +180,23 @@ func main() {
 		}()
 	}
 
-	srv := &api.Server{Client: client, Salt: salt, Mode: mode, FP: fps, Dwell: stays, Dots: dots}
+	adm := &admin.Server{
+		Client:             client,
+		Venue:              v,
+		DataDir:            *dataDir,
+		Secret:             admin.SecretOrRandom(config.Get("SESSION_SECRET", "")),
+		GithubClientID:     config.Get("GITHUB_CLIENT_ID", ""),
+		GithubClientSecret: config.Get("GITHUB_CLIENT_SECRET", ""),
+		ClientURL:          config.Get("CLIENT_URL", ""),
+		PublicURL:          config.Get("PUBLIC_URL", ""),
+	}
+	if err := adm.SeedCalhacks(ctx); err != nil {
+		log.Fatalf("seed venue: %v", err)
+	}
+	if adm.GithubClientID == "" {
+		log.Printf("GITHUB_CLIENT_ID unset: admin sign-in uses the local account")
+	}
+	srv := &api.Server{Client: client, Salt: salt, Mode: mode, FP: fps, Dwell: stays, Dots: dots, Admin: adm}
 	if pid, key := config.Get("MOSS_PROJECT_ID", ""), config.Get("MOSS_PROJECT_KEY", ""); pid != "" && key != "" {
 		docs, err := moss.LoadDocs(filepath.Join(*dataDir, "guide.json"))
 		if err != nil {

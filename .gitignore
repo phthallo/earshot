@@ -18,6 +18,7 @@ android/.gradle/
 android/local.properties
 android/app/build/
 data/fingerprints.json
+data/uploads/
 hacker-guide.pdf
 .DS_Store
 firmware/build-remote*/

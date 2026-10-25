@@ -56,7 +56,7 @@ or hashes will not match across nodes.
 
 Node to bridge, once per second:
 
-- `{"t":"hello","id":103,"fw":"esp-0.1","ch":6}` at boot
+- `{"t":"hello","id":103,"fw":"esp-0.2","ch":6,"mac":"b4:fb:e4:1e:c0:23","uplink":"usb"}` at boot. `mac` is the board's own station address, `uplink` is `usb` or `espnow`.
 - `{"t":"sight","id":103,"ts":<ms>,"items":[["<sha256 hex>",-61,"aa:bb:cc:dd:ee:ff"],...]}` strongest RSSI per MAC this second, RSSI >= -85 only. The third element is the raw MAC; the bridge shows it when a dot is tapped and never stores it.
 - `{"t":"motion","id":103,"ts":<ms>,"score":0.42,"state":"motion"|"idle","pir":0,"anon":17}` `anon` is distinct MACs in the last 10 s
 
@@ -73,7 +73,17 @@ Node to bridge at 10 Hz while a walk capture is on:
 Bridge to node:
 
 - `{"t":"walk","on":1}` start or stop csi lines
+- `{"t":"set","id":104}` store the node id in NVS and reply with a fresh `hello` on the USB console, whatever the uplink. The id survives reflashing the app; `idf.py erase-flash` clears it and the node falls back to `CONFIG_VENUEMAP_NODE_ID`.
 - anything else is parsed and ignored (`allow` is not implemented)
+
+## Node id and flashing from the browser
+
+One image serves every board of a kind. `CONFIG_VENUEMAP_NODE_ID` is only the default
+when NVS has no id. The admin page in the client flashes a board with esp-web-tools and
+then sends `set` over Web Serial, so the two builds that matter are the USB one (this
+directory's `sdkconfig`) and the battery one (`sdkconfig.remote`). After building both,
+`./publish.sh` copies them to `client/public/firmware/{usb,battery}/`, where
+`manifest-usb.json` and `manifest-battery.json` point at them.
 
 Hashes are `sha256(salt || "aa:bb:cc:dd:ee:ff")` with the MAC lowercase. The
 database keys on the hash; the raw MAC rides along for the device sheet.
@@ -115,4 +125,6 @@ A bare LCD1602 with no I2C backpack is not supported. It would need six GPIOs in
 - `main/sniff.c` promiscuous callback and MAC table
 - `main/csi.c` CSI callback and turbulence score
 - `main/proto.c` JSON line output, UART command reader, MAC hashing
+- `main/config.c` node id in NVS, station MAC
+- `main/link.c` ESP-NOW relay between a battery node and the USB node
 - `main/lcd1602.c` PCF8574 LCD driver (legacy `driver/i2c.h` API)

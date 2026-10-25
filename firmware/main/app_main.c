@@ -11,6 +11,7 @@
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 
+#include "config.h"
 #include "csi.h"
 #include "lcd1602.h"
 #include "link.h"
@@ -132,7 +133,7 @@ static void flush(uint32_t ms, int *prev_anon)
     proto_send_motion(ms, score, motion, anon);
 
     char l1[17], l2[17];
-    snprintf(l1, sizeof(l1), "node %d ch%d", CONFIG_VENUEMAP_NODE_ID, CONFIG_VENUEMAP_CHANNEL);
+    snprintf(l1, sizeof(l1), "node %d ch%d", config_node_id(), CONFIG_VENUEMAP_CHANNEL);
     snprintf(l2, sizeof(l2), "ph:%d mv:%.2f", anon, score);
     lcd1602_show(l1, l2);
 }
@@ -142,6 +143,7 @@ void app_main(void)
     proto_init(on_walk);
     lcd1602_init();
     wifi_init();
+    config_init();
     link_init();
     sniff_init();
     csi_init();

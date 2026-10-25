@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "config.h"
 #include "link.h"
 #include "mbedtls/sha256.h"
 #include "sdkconfig.h"
@@ -17,7 +18,7 @@
 #include "driver/uart.h"
 #endif
 
-#define FW_VERSION "esp-0.1"
+#define FW_VERSION "esp-0.2"
 #define RX_LINE_MAX 1024
 /* One item is a 64 hex hash, an RSSI and a 17 char MAC plus JSON framing. */
 #define TX_BUF_MAX (SNIFF_MAX_ENTRIES * 100 + 128)
@@ -57,10 +58,22 @@ static void hash_mac(const uint8_t *mac, char *hex65)
     for (int i = 0; i < 32; i++) sprintf(hex65 + i * 2, "%02x", digest[i]);
 }
 
+static void format_hello(char *buf, size_t n)
+{
+    char mac[18];
+    config_mac(mac);
+    snprintf(buf, n, "{\"t\":\"hello\",\"id\":%d,\"fw\":\"%s\",\"ch\":%d,\"mac\":\"%s\",\"uplink\":\"%s\"}",
+             config_node_id(), FW_VERSION, CONFIG_VENUEMAP_CHANNEL, mac,
+#if CONFIG_VENUEMAP_UPLINK_ESPNOW
+             "espnow");
+#else
+             "usb");
+#endif
+}
+
 void proto_send_hello(void)
 {
-    snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"hello\",\"id\":%d,\"fw\":\"%s\",\"ch\":%d}",
-             CONFIG_VENUEMAP_NODE_ID, FW_VERSION, CONFIG_VENUEMAP_CHANNEL);
+    format_hello(tx_buf, sizeof(tx_buf));
     emit(tx_buf);
 }
 
@@ -68,7 +81,7 @@ void proto_send_sight(uint32_t ts, const sniff_item_t *items, int n)
 {
     char hex[65];
     int off = snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"sight\",\"id\":%d,\"ts\":%lu,\"items\":[",
-                       CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts);
+                       config_node_id(), (unsigned long)ts);
     for (int i = 0; i < n; i++) {
         const uint8_t *m = items[i].mac;
         hash_mac(m, hex);
@@ -85,7 +98,7 @@ void proto_send_sight(uint32_t ts, const sniff_item_t *items, int n)
 void proto_send_aps(uint32_t ts, const sniff_item_t *aps, int n)
 {
     int off = snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"aps\",\"id\":%d,\"ts\":%lu,\"items\":[",
-                       CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts);
+                       config_node_id(), (unsigned long)ts);
     for (int i = 0; i < n; i++) {
         const uint8_t *m = aps[i].mac;
         off += snprintf(tx_buf + off, sizeof(tx_buf) - off, "%s[\"%02x:%02x:%02x:%02x:%02x:%02x\",%d]",
@@ -100,14 +113,14 @@ void proto_send_motion(uint32_t ts, float score, bool motion, int anon)
 {
     snprintf(tx_buf, sizeof(tx_buf),
              "{\"t\":\"motion\",\"id\":%d,\"ts\":%lu,\"score\":%.3f,\"state\":\"%s\",\"pir\":0,\"anon\":%d}",
-             CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts, score, motion ? "motion" : "idle", anon);
+             config_node_id(), (unsigned long)ts, score, motion ? "motion" : "idle", anon);
     emit(tx_buf);
 }
 
 void proto_send_csi(uint32_t ts, const float *amps)
 {
     int off = snprintf(tx_buf, sizeof(tx_buf), "{\"t\":\"csi\",\"id\":%d,\"ts\":%lu,\"amps\":[",
-                       CONFIG_VENUEMAP_NODE_ID, (unsigned long)ts);
+                       config_node_id(), (unsigned long)ts);
     for (int i = 0; i < CSI_NUM_AMPS; i++) {
         off += snprintf(tx_buf + off, sizeof(tx_buf) - off, "%s%.1f", i ? "," : "", amps[i]);
     }
@@ -123,6 +136,17 @@ static void handle_line(const char *line)
     if (cJSON_IsString(t) && strcmp(t->valuestring, "walk") == 0) {
         const cJSON *on = cJSON_GetObjectItem(root, "on");
         if (walk_cb) walk_cb(cJSON_IsNumber(on) ? on->valueint != 0 : cJSON_IsTrue(on));
+    } else if (cJSON_IsString(t) && strcmp(t->valuestring, "set") == 0) {
+        /* Provisioning over USB from the flash page. The reply goes to the
+         * console directly so a battery build answers on the wire too. */
+        const cJSON *id = cJSON_GetObjectItem(root, "id");
+        char reply[160];
+        if (cJSON_IsNumber(id) && config_set_node_id(id->valueint) == 0) {
+            format_hello(reply, sizeof(reply));
+        } else {
+            snprintf(reply, sizeof(reply), "{\"t\":\"error\",\"msg\":\"set needs an id from 1 to 65535\"}");
+        }
+        proto_print_line(reply);
     }
     cJSON_Delete(root);
 }

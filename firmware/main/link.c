@@ -11,6 +11,7 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+#include "config.h"
 #include "proto.h"
 
 #define MAGIC0 'V'
@@ -124,8 +125,8 @@ void link_send_line(const char *line)
         size_t n = len - off < FRAG_PAYLOAD ? len - off : FRAG_PAYLOAD;
         pkt[0] = MAGIC0;
         pkt[1] = MAGIC1;
-        pkt[2] = CONFIG_VENUEMAP_NODE_ID >> 8;
-        pkt[3] = CONFIG_VENUEMAP_NODE_ID & 0xff;
+        pkt[2] = config_node_id() >> 8;
+        pkt[3] = config_node_id() & 0xff;
         pkt[4] = seq;
         pkt[5] = (uint8_t)i;
         pkt[6] = (uint8_t)cnt;

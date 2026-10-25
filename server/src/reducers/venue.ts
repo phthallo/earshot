@@ -56,6 +56,7 @@ export const upsertVenue = spacetimedb.reducer(
   (ctx, { venueId, name, ownerLogin }) => {
     requireIngest(ctx);
     const existing = ctx.db.venue.venueId.find(venueId);
+    if (existing && existing.ownerLogin !== ownerLogin) throw new SenderError(`venue ${venueId} belongs to someone else`);
     const row = { venueId, name, ownerLogin, createdAt: existing?.createdAt ?? ctx.timestamp };
     if (existing) ctx.db.venue.venueId.update(row);
     else ctx.db.venue.insert(row);
@@ -77,6 +78,8 @@ export const placeNode = spacetimedb.reducer(
   { nodeId: t.u16(), venueId: t.string(), floor: t.u8(), x: t.f32(), y: t.f32(), label: t.string() },
   (ctx, { nodeId, venueId, floor, x, y, label }) => {
     requireIngest(ctx);
+    const link = ctx.db.venueNode.nodeId.find(nodeId);
+    if (link && link.venueId !== venueId) throw new SenderError(`node ${nodeId} belongs to venue ${link.venueId}`);
     const existing = ctx.db.node.nodeId.find(nodeId);
     const row = {
       nodeId,
@@ -90,11 +93,17 @@ export const placeNode = spacetimedb.reducer(
     };
     if (existing) ctx.db.node.nodeId.update(row);
     else ctx.db.node.insert(row);
-    const link = { nodeId, venueId };
-    if (ctx.db.venueNode.nodeId.find(nodeId)) ctx.db.venueNode.nodeId.update(link);
-    else ctx.db.venueNode.insert(link);
+    if (!link) ctx.db.venueNode.insert({ nodeId, venueId });
   }
 );
+
+// Ties nodes seeded from nodes.json to a venue so no other venue can place them.
+export const claimNodes = spacetimedb.reducer({ venueId: t.string(), nodeIds: t.array(t.u16()) }, (ctx, { venueId, nodeIds }) => {
+  requireIngest(ctx);
+  for (const nodeId of nodeIds) {
+    if (!ctx.db.venueNode.nodeId.find(nodeId)) ctx.db.venueNode.insert({ nodeId, venueId });
+  }
+});
 
 export const rememberBoard = spacetimedb.reducer(
   { mac: t.string(), nodeId: t.u16(), ownerLogin: t.string(), venueId: t.string() },

@@ -22,6 +22,8 @@ type Message struct {
 	Anon  int       `json:"anon,omitempty"`
 	Items [][]any   `json:"items,omitempty"` // [macHash, rssi] or [macHash, rssi, mac]
 	Amps  []float64 `json:"amps,omitempty"`
+	// Relay key, on the "auth" line a relay sends first over TCP.
+	Key string `json:"key,omitempty"`
 }
 
 // Sight is one decoded item of a sight line.

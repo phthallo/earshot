@@ -6,8 +6,9 @@
 //	bridge --survey --iface mon0       walk the venue, type zone ids, counts saved
 //	bridge --survey --serial /dev/ttyUSB0   same, sniffing with an ESP32 on USB
 //	bridge --serial /dev/ttyUSB0       ESP32 nodes over UART
-//	bridge --tcp :9000                 laptop/Pi sniffers connect here
-//	bridge --node --iface mon0 --id 101 --connect host:9000   run as a sniffer node
+//	bridge --tcp :9000                 relays and laptop/Pi sniffers connect here
+//	bridge --relay --serial /dev/ttyACM0 --connect host:9000 --key es_…   forward USB boards to a hosted bridge
+//	bridge --node --iface mon0 --id 101 --connect host:9000 --key es_…    run as a sniffer node
 package main
 
 import (
@@ -53,10 +54,12 @@ func main() {
 		dataDir    = flag.String("data", "", "directory with nodes.json etc (default ../data relative to the binary's repo)")
 		envFile    = flag.String("env", "", "path to .env (default: repo root .env)")
 		// node mode
-		nodeMode = flag.Bool("node", false, "run as a sniffer node instead of the bridge")
-		iface    = flag.String("iface", "mon0", "monitor-mode interface (node mode)")
-		nodeID   = flag.Int("id", 101, "node id (node mode)")
-		connect  = flag.String("connect", "", "bridge host:port to send lines to (node mode); empty prints to stdout")
+		nodeMode  = flag.Bool("node", false, "run as a sniffer node instead of the bridge")
+		relayMode = flag.Bool("relay", false, "forward the boards on --serial to the bridge at --connect")
+		iface     = flag.String("iface", "mon0", "monitor-mode interface (node mode)")
+		nodeID    = flag.Int("id", 101, "node id (node mode)")
+		connect   = flag.String("connect", "", "bridge host:port to send lines to (node and relay mode); empty prints to stdout")
+		relayKey  = flag.String("key", "", "the venue's relay key from the Venues page (overrides RELAY_KEY)")
 	)
 	flag.Parse()
 
@@ -73,8 +76,29 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	if *relayKey == "" {
+		*relayKey = config.Get("RELAY_KEY", "")
+	}
 	if *nodeMode {
-		if err := sniff.Run(ctx, sniff.Options{Iface: *iface, NodeID: *nodeID, Connect: *connect, Salt: salt}); err != nil {
+		if err := sniff.Run(ctx, sniff.Options{Iface: *iface, NodeID: *nodeID, Connect: *connect, Key: *relayKey, Salt: salt}); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	if *relayMode {
+		if *connect == "" || *serial == "" {
+			log.Fatal("relay mode needs --serial and --connect")
+		}
+		if *relayKey == "" {
+			log.Fatal("relay mode needs --key (from the venue's page under Venues)")
+		}
+		var ports []string
+		for _, p := range strings.Split(*serial, ",") {
+			if p = strings.TrimSpace(p); p != "" {
+				ports = append(ports, p)
+			}
+		}
+		if err := node.Relay(ctx, ports, *connect, *relayKey); err != nil {
 			log.Fatal(err)
 		}
 		return
@@ -159,9 +183,14 @@ func main() {
 		log.Printf("no zone fingerprints yet (walk with --survey --serial or the app's learn mode): real nodes stay where nodes.json puts them")
 	}
 	stays := &dwell.Tracker{}
-	dots := &anon.Tracker{Venue: v, Dwell: stays}
-	h.Observe = dots.Observe
+	dots := &anon.Tracker{Venue: v, VenueID: admin.Calhacks, Dwell: stays}
 	go dots.Run(ctx, client, 2*time.Second)
+	venues := &anon.Registry{Client: client, Local: admin.Calhacks, Built: dots, Interval: 2 * time.Second}
+	go venues.Run(ctx)
+	h.LocalVenue = admin.Calhacks
+	h.Observe = venues.Observe
+	h.Auth = venues.Auth
+	h.Allow = venues.Allow
 	go h.WatchWalks(ctx, client)
 	ports := *serial
 	if ports == "" {
@@ -189,6 +218,7 @@ func main() {
 		GithubClientSecret: config.Get("GITHUB_CLIENT_SECRET", ""),
 		ClientURL:          config.Get("CLIENT_URL", ""),
 		PublicURL:          config.Get("PUBLIC_URL", ""),
+		OnPlace:            venues.Refresh,
 	}
 	if err := adm.SeedCalhacks(ctx); err != nil {
 		log.Fatalf("seed venue: %v", err)

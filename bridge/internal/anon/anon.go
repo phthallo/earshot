@@ -29,6 +29,8 @@ const (
 	// position comes from the hash so a phone stays put between pushes.
 	nearDbm, farDbm = -35.0, -85.0
 	nearM, farM     = 1.0, 10.0
+	// Uploaded floor plans carry no scale; assume a 2000 px wide hall is about 60 m.
+	defaultMetersPerUnit = 0.03
 )
 
 type Point struct {
@@ -91,7 +93,10 @@ type NodeHear struct {
 }
 
 type Tracker struct {
+	// Venue geometry: node positions and zone polygons. Replace with SetVenue.
 	Venue *venue.Venue
+	// VenueID names the venue in the pushed rows; "" is the built-in one.
+	VenueID string
 	// Optional. Told which zone each hash was placed in, for dwell statistics.
 	Dwell *dwell.Tracker
 
@@ -217,14 +222,21 @@ func (t *Tracker) Stats(now time.Time) string {
 	return out
 }
 
+// SetVenue swaps the geometry, for venues whose nodes come from the database.
+func (t *Tracker) SetVenue(v *venue.Venue) {
+	t.mu.Lock()
+	t.Venue = v
+	t.mu.Unlock()
+}
+
 // Points places every phone heard inside the window and forgets older ones.
 func (t *Tracker) Points(now time.Time) []Point {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	nodes := map[int]venue.Node{}
 	for _, n := range t.Venue.Nodes.Nodes {
 		nodes[n.NodeID] = n
 	}
-	t.mu.Lock()
-	defer t.mu.Unlock()
 	var out []Point
 	for hash, byNode := range t.seen {
 		type heard struct {
@@ -266,7 +278,11 @@ func (t *Tracker) Points(now time.Time) []Point {
 		x, y := sx/sw, sy/sw
 		// Spread: a full ring for one node, a small one when two or more nodes
 		// already pulled the centroid between them.
-		radius := ringMetres(best.rssi) / t.Venue.Nodes.MetersPerUnit
+		mpu := t.Venue.Nodes.MetersPerUnit
+		if mpu <= 0 {
+			mpu = defaultMetersPerUnit
+		}
+		radius := ringMetres(best.rssi) / mpu
 		if len(hs) > 1 {
 			radius /= 4
 		}
@@ -367,7 +383,7 @@ func (t *Tracker) Run(ctx context.Context, client *stdb.Client, interval time.Du
 			pts := t.Points(now)
 			if now.Sub(lastStats) >= 30*time.Second {
 				lastStats = now
-				log.Printf("anon: %s", t.Stats(now))
+				log.Printf("anon %s: %s", t.VenueID, t.Stats(now))
 			}
 			if len(pts) == 0 && lastEmpty {
 				continue // nothing to clear
@@ -377,7 +393,7 @@ func (t *Tracker) Run(ctx context.Context, client *stdb.Client, interval time.Du
 				pts = []Point{}
 			}
 			cctx, cancel := context.WithTimeout(ctx, 40*time.Second)
-			err := client.Call(cctx, "push_anon_points", pts)
+			err := client.Call(cctx, "push_anon_points", t.VenueID, pts)
 			cancel()
 			if err != nil {
 				log.Printf("push_anon_points: %v", err)

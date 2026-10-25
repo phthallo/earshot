@@ -34,6 +34,7 @@ type Options struct {
 	Iface   string
 	NodeID  int
 	Connect string // bridge host:port; empty prints to stdout
+	Key     string // relay key, needed unless the bridge is on this machine
 	Salt    string
 }
 
@@ -135,6 +136,11 @@ func Run(ctx context.Context, o Options) error {
 		out = conn
 	}
 	enc := json.NewEncoder(out)
+	if o.Connect != "" && o.Key != "" {
+		if err := enc.Encode(node.Message{T: "auth", Key: o.Key}); err != nil {
+			return err
+		}
+	}
 	if err := enc.Encode(node.Message{T: "hello", ID: o.NodeID, FW: "sniff-0.1"}); err != nil {
 		return err
 	}

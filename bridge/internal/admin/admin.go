@@ -37,6 +37,8 @@ type Server struct {
 	ClientURL          string // origin the browser may be sent back to
 	PublicURL          string // where browsers reach the bridge; empty uses the request host
 	HTTP               *http.Client
+	// OnPlace is told when a node is placed in a venue other than the built-in one.
+	OnPlace func(ctx context.Context, venueID string)
 }
 
 func (s *Server) Register(mux *http.ServeMux) {
@@ -47,6 +49,7 @@ func (s *Server) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/admin/venues", s.withSession(s.listVenues))
 	mux.HandleFunc("POST /api/admin/venues", s.withSession(s.createVenue))
 	mux.HandleFunc("POST /api/admin/venues/{venueId}/floors", s.withSession(s.uploadFloor))
+	mux.HandleFunc("POST /api/admin/venues/{venueId}/key", s.withSession(s.rotateKey))
 	mux.HandleFunc("POST /api/admin/nodes/place", s.withSession(s.placeNode))
 	mux.HandleFunc("POST /api/admin/boards", s.withSession(s.rememberBoard))
 	mux.HandleFunc("DELETE /api/admin/boards/{mac}", s.withSession(s.forgetBoard))
@@ -107,10 +110,11 @@ type venueRow struct {
 	Name       string `json:"name"`
 	OwnerLogin string `json:"ownerLogin"`
 	CreatedAt  string `json:"createdAt"`
+	HasKey     bool   `json:"hasKey"`
 }
 
 func toVenue(r stdb.Row) venueRow {
-	return venueRow{VenueID: r.Str("venue_id"), Name: r.Str("name"), OwnerLogin: r.Str("owner_login"), CreatedAt: timestampISO(r["created_at"])}
+	return venueRow{VenueID: r.Str("venue_id"), Name: r.Str("name"), OwnerLogin: r.Str("owner_login"), CreatedAt: timestampISO(r["created_at"]), HasKey: r.Str("ingest_key_hash") != ""}
 }
 
 // SQL returns a timestamp as [micros]; the client wants ISO 8601.
@@ -327,6 +331,8 @@ func (s *Server) placeNode(w http.ResponseWriter, r *http.Request, sess Session)
 		if err := s.Venue.PlaceNode(ctx, s.Client, in.NodeID, in.Floor, in.X, in.Y, in.Label); err != nil {
 			log.Printf("place node %d in memory: %v", in.NodeID, err)
 		}
+	} else if s.OnPlace != nil {
+		s.OnPlace(ctx, in.VenueID)
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
 }

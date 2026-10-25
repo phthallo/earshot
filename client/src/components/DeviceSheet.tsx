@@ -82,10 +82,7 @@ export function DeviceSheet({ hash, onTrail, onClose }: { hash: string; onTrail:
               <p className="hint">{d.randomised ? copy.device.randomised : copy.device.hardware}</p>
             </>
           ) : (
-            <>
-              <p className="hint">{report?.addressWithheld ? copy.device.withheld : copy.device.noMac}</p>
-              {report?.addressWithheld && <p className="hint">{d.randomised ? copy.device.randomised : copy.device.hardware}</p>}
-            </>
+            <p className="hint">{report?.addressWithheld ? (d.randomised ? copy.device.randomised : copy.device.hardware) : copy.device.noMac}</p>
           )}
 
           {day && (
@@ -115,6 +112,7 @@ export function DeviceSheet({ hash, onTrail, onClose }: { hash: string; onTrail:
           )}
 
           <h3>{copy.device.heard}</h3>
+          {d.nodes.length === 0 && <p className="hint">{copy.device.quiet(ago(new Date(d.lastSeen), now))}</p>}
           <ul className="heard">
             {d.nodes.map((n) => (
               <li key={n.nodeId}>
@@ -129,7 +127,7 @@ export function DeviceSheet({ hash, onTrail, onClose }: { hash: string; onTrail:
               </li>
             ))}
           </ul>
-          {!day && <p className="hint">{copy.device.lastHeard(ago(new Date(d.lastSeen), now))}</p>}
+          {!day && d.nodes.length > 0 && <p className="hint">{copy.device.lastHeard(ago(new Date(d.lastSeen), now))}</p>}
 
           <p className="hash" title={d.hash}>
             {copy.device.hash} <span className="mono">{d.hash.slice(0, 12)}…</span>

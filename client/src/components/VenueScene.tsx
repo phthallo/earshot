@@ -5,7 +5,7 @@ import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRe
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { useTable } from 'spacetimedb/react';
 import { tables } from '../module_bindings';
-import { METERS_PER_UNIT, PLAN_HEIGHT, PLAN_WIDTH, type Point } from '../geom';
+import { METERS_PER_UNIT, PLAN_HEIGHT, PLAN_WIDTH, TRAIL_KEEP_MS, anonColour, hashHue, type Point } from '../geom';
 import {
   AV_BOOTH, BACKDROP, BOOTHS, DECK, DECK_HOLE, ENVELOPE, HEIGHTS, MAIN_WALLS, MERCH_ROOM, MEZZ_DOORS, MEZZ_WALLS, NODES, OPENINGS,
   ROOMS, ROUNDS, STAGE, STAIRS, TABLES, ZONES, isRealNode, type Seg, type Table,
@@ -152,6 +152,23 @@ function block(points: Point[], y: number, height: number, material: THREE.Mater
 // The render's floor: dark grey with specks, soft blotches and tile seams,
 // drawn once onto a canvas and tiled. A slab's uv is its shape coordinate
 // (px / SCALE), so one tile covers FLOOR_TILE world units.
+// A soft radial spot, tinted per use, for the glow around the picked phone.
+let glowTex: THREE.CanvasTexture | undefined;
+function glowTexture(): THREE.CanvasTexture {
+  if (glowTex) return glowTex;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,0.9)');
+  g.addColorStop(0.4, 'rgba(255,255,255,0.35)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  glowTex = new THREE.CanvasTexture(c);
+  return glowTex;
+}
+
 const FLOOR_TILE = 12;
 function floorTexture(): THREE.Texture {
   const size = 1024;
@@ -813,25 +830,44 @@ export function VenueScene({ floor, xray, liveOnly, meId, selectedZone, onSelect
     if (anonPoints.length === 0) return;
     // Spheres, not THREE.Points: a point is a few pixels at this camera distance.
     const geom = new THREE.SphereGeometry(0.9, 10, 8);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.35 });
+    // Unlit, so each instance shows exactly its palette colour.
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const dots = new THREE.InstancedMesh(geom, material, anonPoints.length);
     const m = new THREE.Matrix4();
     const c = new THREE.Color();
-    // Instances share one material, so the unpicked dots are shrunk and
-    // darkened rather than made transparent.
+    // Instances share one material, so while one phone is picked the others
+    // are shrunk and darkened rather than made transparent.
     anonPoints.forEach((p, i) => {
-      const picked = p.hash === selectedDevice;
-      const other = !!selectedDevice && !picked;
-      const s = picked ? 1.6 : other ? 0.55 : 1;
+      const other = !!selectedDevice && p.hash !== selectedDevice;
+      const s = other ? 0.55 : 1;
       m.makeScale(s, s, s).setPosition(toWorld([p.x, p.y], floorY(p.floor) + 1));
       dots.setMatrixAt(i, m);
-      const k = 0.4 + 0.35 * Math.max(0, Math.min(1, (p.rssi + 85) / 50));
-      dots.setColorAt(i, c.setHSL(p.hue / 256, other ? 0.2 : 0.75, other ? k * 0.35 : k));
+      const k = 0.55 + 0.45 * Math.max(0, Math.min(1, (p.rssi + 85) / 50));
+      // Linear-space factors: 0.06 reads as roughly a third of the brightness on screen.
+      dots.setColorAt(i, c.set(anonColour(p.hue)).multiplyScalar(other ? 0.06 : k));
     });
     dots.instanceMatrix.needsUpdate = true;
     if (dots.instanceColor) dots.instanceColor.needsUpdate = true;
     w.scene.add(dots);
     dotPick.current = { mesh: dots, hashes: anonPoints.map((p) => p.hash) };
+    // The picked phone keeps its size and gets a white ring inside a glow in its colour.
+    const picked = anonPoints.find((p) => p.hash === selectedDevice);
+    const pickGeom = new THREE.TorusGeometry(2.2, 0.22, 6, 32);
+    const pickMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const glowMaterial = new THREE.SpriteMaterial({ map: glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    const pickMarks: THREE.Object3D[] = [];
+    if (picked) {
+      const at = toWorld([picked.x, picked.y], floorY(picked.floor) + 1);
+      const ring = new THREE.Mesh(pickGeom, pickMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.copy(at);
+      glowMaterial.color.set(anonColour(picked.hue));
+      const glow = new THREE.Sprite(glowMaterial);
+      glow.scale.set(11, 11, 1);
+      glow.position.copy(at);
+      pickMarks.push(ring, glow);
+      w.scene.add(ring, glow);
+    }
     // Phones with a factory address get a flat ring, so the trackable ones stand out.
     const stable = anonPoints.filter((p) => p.stable);
     const ringGeom = new THREE.TorusGeometry(1.7, 0.25, 6, 24);
@@ -846,41 +882,73 @@ export function VenueScene({ floor, xray, liveOnly, meId, selectedZone, onSelect
     w.invalidate();
     return () => {
       dotPick.current = null;
-      w.scene.remove(dots, rings);
+      w.scene.remove(dots, rings, ...pickMarks);
       geom.dispose();
       material.dispose();
       ringGeom.dispose();
       ringMaterial.dispose();
+      pickGeom.dispose();
+      pickMaterial.dispose();
+      glowMaterial.dispose();
       w.invalidate();
     };
   }, [anonPoints, selectedDevice]);
 
-  // The picked phone's past positions, a dashed line just above its floor.
+  // The picked phone's past positions: ghosts in its colour above its floor, oldest darkest and smallest.
+  // A picked phone that has gone quiet has no dot: every step is a ghost and the marker sits on the last.
+  const pickedGone = !!selectedDevice && !anonPoints.some((p) => p.hash === selectedDevice);
   useEffect(() => {
     const w = world.current;
-    if (!w || !selectedDevice || trail.length < 2) return;
+    if (!w || !selectedDevice || trail.length < (pickedGone ? 1 : 2)) return;
+    const colour = new THREE.Color(anonColour(hashHue(selectedDevice)));
     const pts = trail.map((s) => toWorld([s.x, s.y], floorY(s.floor) + 0.6));
     const geom = new THREE.BufferGeometry().setFromPoints(pts);
-    const material = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 1.2, gapSize: 0.8, transparent: true, opacity: 0.85 });
+    const material = new THREE.LineDashedMaterial({ color: colour, dashSize: 1.2, gapSize: 0.8, transparent: true, opacity: 0.7 });
     const line = new THREE.Line(geom, material);
     line.computeLineDistances();
-    const stepGeom = new THREE.SphereGeometry(0.45, 8, 6);
-    const stepMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 });
-    const steps = new THREE.InstancedMesh(stepGeom, stepMaterial, pts.length - 1);
+    const ghosts = pickedGone ? pts : pts.slice(0, -1);
+    const stepGeom = new THREE.SphereGeometry(0.55, 8, 6);
+    const stepMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const steps = new THREE.InstancedMesh(stepGeom, stepMaterial, ghosts.length);
     const m = new THREE.Matrix4();
-    pts.slice(0, -1).forEach((p, i) => steps.setMatrixAt(i, m.setPosition(p)));
+    const c = new THREE.Color();
+    const now = Date.now();
+    const marks: THREE.Object3D[] = [];
+    const markGeom = new THREE.TorusGeometry(2.2, 0.22, 6, 32);
+    const markMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
+    const glowMaterial = new THREE.SpriteMaterial({ map: glowTexture(), color: colour, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    if (pickedGone) {
+      const at = pts[pts.length - 1].clone().setY(pts[pts.length - 1].y + 0.4);
+      const ring = new THREE.Mesh(markGeom, markMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.copy(at);
+      const glow = new THREE.Sprite(glowMaterial);
+      glow.scale.set(11, 11, 1);
+      glow.position.copy(at);
+      marks.push(ring, glow);
+    }
+    ghosts.forEach((p, i) => {
+      const age = Math.max(0, Math.min(1, (now - new Date(trail[i].at).getTime()) / TRAIL_KEEP_MS));
+      const s = 0.6 + 0.6 * (1 - age);
+      steps.setMatrixAt(i, m.makeScale(s, s, s).setPosition(p));
+      steps.setColorAt(i, c.copy(colour).multiplyScalar(0.3 + 0.7 * (1 - age)));
+    });
     steps.instanceMatrix.needsUpdate = true;
-    w.scene.add(line, steps);
+    if (steps.instanceColor) steps.instanceColor.needsUpdate = true;
+    w.scene.add(line, steps, ...marks);
     w.invalidate();
     return () => {
-      w.scene.remove(line, steps);
+      w.scene.remove(line, steps, ...marks);
       geom.dispose();
       material.dispose();
       stepGeom.dispose();
       stepMaterial.dispose();
+      markGeom.dispose();
+      markMaterial.dispose();
+      glowMaterial.dispose();
       w.invalidate();
     };
-  }, [selectedDevice, trail]);
+  }, [selectedDevice, trail, pickedGone]);
 
   // Node pins: real nodes follow the table (the bridge moves them) and hide once
   // they stop reporting; mock nodes hide in live-only mode.

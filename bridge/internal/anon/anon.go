@@ -123,7 +123,9 @@ func (t *Tracker) Observe(nodeID int, sights []node.Sight) {
 		if byNode == nil {
 			byNode = map[int]obs{}
 			t.seen[s.MacHash] = byNode
-			t.first[s.MacHash] = now
+			if _, ok := t.first[s.MacHash]; !ok {
+				t.first[s.MacHash] = now
+			}
 		}
 		byNode[nodeID] = obs{rssi: s.RSSI, at: now}
 		if s.MAC != "" {
@@ -132,8 +134,8 @@ func (t *Tracker) Observe(nodeID int, sights []node.Sight) {
 	}
 }
 
-// Device describes one phone by hash, or nil when nothing has heard it in the
-// window. Sightings are sorted loudest first.
+// Device describes one phone by hash: its current sightings, loudest first,
+// or only its trail once it has gone quiet. Nil when the trail has expired too.
 func (t *Tracker) Device(hash string, now time.Time) *Device {
 	nodes := map[int]venue.Node{}
 	for _, n := range t.Venue.Nodes.Nodes {
@@ -142,10 +144,7 @@ func (t *Tracker) Device(hash string, now time.Time) *Device {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	byNode := t.seen[hash]
-	if byNode == nil {
-		return nil
-	}
-	d := &Device{Hash: hash, MAC: t.macs[hash], FirstSeen: t.first[hash], Randomised: randomised(t.macs[hash]), Trail: append([]Step{}, t.trail[hash]...)}
+	d := &Device{Hash: hash, MAC: t.macs[hash], FirstSeen: t.first[hash], Randomised: randomised(t.macs[hash]), Nodes: []NodeHear{}, Trail: append([]Step{}, t.trail[hash]...)}
 	for id, o := range byNode {
 		if now.Sub(o.at) > window {
 			continue
@@ -160,6 +159,11 @@ func (t *Tracker) Device(hash string, now time.Time) *Device {
 		}
 	}
 	if len(d.Nodes) == 0 {
+		// Gone quiet, but its trail is still kept: answer from that.
+		if n := len(d.Trail); n > 0 && now.Sub(d.Trail[n-1].At) <= trailKeep {
+			d.LastSeen = d.Trail[n-1].At
+			return d
+		}
 		return nil
 	}
 	sort.Slice(d.Nodes, func(i, j int) bool { return d.Nodes[i].RSSI > d.Nodes[j].RSSI })
@@ -237,6 +241,12 @@ func (t *Tracker) Points(now time.Time) []Point {
 	for _, n := range t.Venue.Nodes.Nodes {
 		nodes[n.NodeID] = n
 	}
+	// Trails of phones that went quiet earlier expire on their own clock.
+	for hash := range t.trail {
+		if _, heard := t.seen[hash]; !heard {
+			t.pruneQuiet(hash, now)
+		}
+	}
 	var out []Point
 	for hash, byNode := range t.seen {
 		type heard struct {
@@ -254,10 +264,10 @@ func (t *Tracker) Points(now time.Time) []Point {
 			}
 		}
 		if len(hs) == 0 {
+			// The dot leaves the map, but its trail stays for trailKeep so a
+			// tap on where it was still shows where it went.
 			delete(t.seen, hash)
-			delete(t.macs, hash)
-			delete(t.first, hash)
-			delete(t.trail, hash)
+			t.pruneQuiet(hash, now)
 			continue
 		}
 		sort.Slice(hs, func(i, j int) bool { return hs[i].rssi > hs[j].rssi })
@@ -316,7 +326,18 @@ func (t *Tracker) Points(now time.Time) []Point {
 	return out
 }
 
-// zoneAt returns the id of the zone containing the point, or "" off every zone.
+// pruneQuiet forgets a phone no node hears once its last step is older than
+// trailKeep. Caller holds t.mu.
+func (t *Tracker) pruneQuiet(hash string, now time.Time) {
+	tr := t.trail[hash]
+	if len(tr) > 0 && now.Sub(tr[len(tr)-1].At) <= trailKeep {
+		return
+	}
+	delete(t.macs, hash)
+	delete(t.first, hash)
+	delete(t.trail, hash)
+}
+
 // step records a position, skipping it when the dot has not left its cell,
 // and drops steps older than trailKeep. Caller holds t.mu.
 func (t *Tracker) step(hash string, s Step) {

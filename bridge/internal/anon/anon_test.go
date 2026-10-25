@@ -112,3 +112,36 @@ func TestOneNodeGivesARingAndOldSightingsExpire(t *testing.T) {
 		t.Errorf("stale sightings still placed: %v", got)
 	}
 }
+
+func TestQuietPhoneKeepsItsTrailForAWhile(t *testing.T) {
+	tr := &Tracker{Venue: testVenue()}
+	tr.Observe(103, []node.Sight{{MacHash: "80ab", RSSI: -60}})
+	now := time.Now()
+	first := tr.first["80ab"]
+	tr.Points(now)
+	quiet := now.Add(window + time.Second)
+	if got := tr.Points(quiet); len(got) != 0 {
+		t.Fatalf("dot still placed after the window: %v", got)
+	}
+	d := tr.Device("80ab", quiet)
+	if d == nil || len(d.Trail) != 1 || len(d.Nodes) != 0 {
+		t.Fatalf("quiet phone should answer from its trail, got %+v", d)
+	}
+	if !d.LastSeen.Equal(d.Trail[0].At) {
+		t.Errorf("last seen %v, want the last step %v", d.LastSeen, d.Trail[0].At)
+	}
+	// Heard again before the trail expires: still the same first sighting.
+	tr.Observe(103, []node.Sight{{MacHash: "80ab", RSSI: -60}})
+	if d := tr.Device("80ab", time.Now()); d == nil || !d.FirstSeen.Equal(first) {
+		t.Errorf("returning phone lost its first sighting: %+v", d)
+	}
+	expired := now.Add(trailKeep + time.Minute)
+	tr.Points(expired)
+	tr.Points(expired)
+	if d := tr.Device("80ab", expired); d != nil {
+		t.Errorf("trail should be forgotten after trailKeep, got %+v", d)
+	}
+	if len(tr.trail) != 0 || len(tr.first) != 0 || len(tr.macs) != 0 {
+		t.Errorf("quiet phone still remembered: trail %d first %d macs %d", len(tr.trail), len(tr.first), len(tr.macs))
+	}
+}

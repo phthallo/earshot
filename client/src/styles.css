@@ -198,12 +198,25 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
 .swatch.phone::before { background: none; border: 1.5px dashed var(--sky-2); border-radius: 50%; }
 .swatch.anon::before { background: var(--ink); border-radius: 50%; opacity: 0.6; }
 .swatch.stable::before { background: var(--ink); border-radius: 50%; opacity: 0.6; box-shadow: 0 0 0 2px var(--amber); }
-.anon-dot { fill: var(--ink); stroke: var(--night); stroke-width: 2; cursor: pointer; }
-.anon-dot.stable { stroke: var(--amber); stroke-width: 4; }
-.anon-dot.picked { stroke: #fff; stroke-width: 4; }
+/* Unregistered phones: a dot in the phone's own colour. A fixed address gets a thin amber
+   ring; the picked phone keeps its size and gets a white ring inside a pulsing glow. */
+.anon { cursor: pointer; }
+.anon-dot { fill: currentColor; stroke: var(--night); stroke-width: 2; }
+.anon.stable .anon-dot { stroke: var(--amber); stroke-width: 3; }
+.anon.picked .anon-dot { filter: drop-shadow(0 0 6px currentColor); }
+.anon .ring { fill: none; stroke: #fff; stroke-width: 3; }
+/* The picked phone has gone quiet: the marker stays on its last step, dashed. */
+.anon.gone { pointer-events: none; }
+.anon.gone .ring { stroke-dasharray: 6 5; opacity: 0.8; }
+.anon .halo { fill: currentColor; opacity: 0.35; transform-box: fill-box; transform-origin: center; animation: halo 1.8s ease-in-out infinite; }
+@keyframes halo {
+  0%, 100% { transform: scale(1); opacity: 0.35; }
+  50% { transform: scale(1.4); opacity: 0.1; }
+}
+@media (prefers-reduced-motion: reduce) { .anon .halo { animation: none; } }
 .device-trail { pointer-events: none; }
-.device-trail polyline { fill: none; stroke: #fff; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 8 6; opacity: 0.8; }
-.device-trail circle { fill: #fff; opacity: 0.7; }
+.device-trail polyline { fill: none; stroke: currentColor; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 10 8; opacity: 0.6; }
+.device-trail circle { fill: currentColor; stroke: var(--night); stroke-width: 1.5; }
 .device-sheet .zone-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .device-sheet .zone-head .quiet { flex: none; font-size: 24px; line-height: 1; padding: 2px 8px; margin: -4px -8px 0 0; }
 .device-sheet .mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 17px; margin: 0 0 4px; word-break: break-all; }
@@ -417,7 +430,7 @@ input[type='file'] { padding: 8px 10px; }
   .view-map .panel .sheet h2 { color: var(--ink); }
   .view-map .panel .sheet h3 { border-color: var(--sky); color: var(--sky); }
   .view-map .panel .link, .view-map .panel details summary { color: var(--sky-2); }
-  .view-map .panel .zone-head h2 { color: #080808; }
+  .view-map .panel .zone-card .zone-head h2 { color: #080808; }
   .view-map .panel .meter { background: rgba(255, 255, 255, 0.15); }
   .view-map .panel .here .mate { color: var(--sand); }
   .view-map .panel .spark path { stroke: var(--sky-2); }
@@ -442,8 +455,9 @@ input[type='file'] { padding: 8px 10px; }
   .side.right { grid-column: 3; }
   .side:empty { display: none; }
   .side .panel { grid-row: auto; flex: none; overflow: visible; }
-  /* The last card on each side takes the height left, so both sides reach the bottom of the map. */
-  .side .panel:last-child { flex: 1 1 auto; min-height: 0; }
+  /* The last card on each side takes the height left, so both sides reach the bottom of the map.
+     It can be shorter than its content, which then scrolls inside the card. */
+  .side .panel:last-child { flex: 1 1 auto; min-height: 0; overflow: auto; }
   /* In the Ask card the thread grows and the question box stays at the bottom. */
   .side .panel.card-ask { display: flex; flex-direction: column; }
   .side .panel.card-ask .sheet.ask { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }

@@ -220,7 +220,6 @@ export const copy = {
     close: 'Close',
     mac: 'Wifi address',
     noMac: 'This node sends only the hash.',
-    withheld: 'Only shown on the organiser laptop. Everyone else sees the hash.',
     randomised: 'Randomised by the phone for this network (Android 10+ or iOS 14+).',
     hardware: 'Factory address. The first six characters name the chip vendor. This is a laptop, badge or older phone.',
     heard: 'Heard by',
@@ -235,6 +234,7 @@ export const copy = {
     now: 'Last heard',
     hash: 'Salted hash',
     lastHeard: (when: string) => `Last heard ${when}.`,
+    quiet: (when: string) => `No node is hearing it now. Last heard ${when}.`,
   },
 
   dwell: {

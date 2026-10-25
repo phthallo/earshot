@@ -2,7 +2,7 @@ import { memo, useMemo, useRef, type MouseEvent as ReactMouseEvent } from 'react
 import { useTable } from 'spacetimedb/react';
 import { tables } from '../module_bindings';
 import { PLAN_HEIGHT, PLAN_WIDTH, VIEW_BOX, polygonPath } from '../geom';
-import { anonColour } from '../geom';
+import { TRAIL_KEEP_MS, anonColour, hashHue } from '../geom';
 import { AMENITIES, BOOTHS, DECK, ENVELOPE, LABELS, MEZZ_IMAGE, NODES, OPENINGS, ROOMS, TABLES, ZONES, isRealNode } from '../venue';
 import { copy } from '../copy';
 import { clock, useNow } from '../hooks';
@@ -162,6 +162,12 @@ export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, se
   // Other venues' phones belong on their uploaded plans, not the hall.
   const dots = anonPoints.filter((p) => p.floor === floor && (p.venueId === 'calhacks' || p.venueId === ''));
   const floorTrail = trail.filter((s) => s.floor === floor);
+  // A picked phone that has gone quiet has no dot: its trail ends in the marker instead.
+  const pickedGone = !!selectedDevice && !anonPoints.some((p) => p.hash === selectedDevice);
+  const pickedColour = selectedDevice ? anonColour(hashHue(selectedDevice)) : '#fff';
+  const ghosts = pickedGone ? floorTrail : floorTrail.slice(0, -1);
+  const last = trail[trail.length - 1];
+  const lastStep = pickedGone && last?.floor === floor ? last : undefined;
   const view = usePanZoom(PLAN_WIDTH, PLAN_HEIGHT);
   const floorPins = pins.filter((p) => p.floor === floor);
   // The pan-zoom capture handler swallows the click that ends a drag, so this only sees taps.
@@ -226,34 +232,45 @@ export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, se
           );
         })}
 
-        {/* Unregistered phones the real nodes hear: no name, no identity, faded with distance. */}
-        {dots.map((d) => (
-          <circle
-            key={d.id}
-            className={[d.stable ? 'anon-dot stable' : 'anon-dot', d.hash === selectedDevice ? 'picked' : ''].join(' ').trim()}
-            cx={d.x}
-            cy={d.y}
-            r={d.hash === selectedDevice ? 12 : 9}
-            style={{
-              fill: anonColour(d.hue),
-              opacity: (0.45 + 0.5 * Math.max(0, Math.min(1, (d.rssi + 85) / 50))) * (selectedDevice && d.hash !== selectedDevice ? 0.18 : 1),
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectDevice(d.hash);
-            }}
-          />
-        ))}
-
-        {/* Where the picked phone has been on this floor, oldest step smallest. */}
-        {selectedDevice && floorTrail.length > 1 && (
-          <g className="device-trail">
-            <polyline points={floorTrail.map((s) => `${s.x},${s.y}`).join(' ')} />
-            {floorTrail.slice(0, -1).map((s, i) => (
-              <circle key={i} cx={s.x} cy={s.y} r={3 + (4 * i) / floorTrail.length} />
-            ))}
+        {/* Where the picked phone has been on this floor: ghosts in its colour, oldest faintest. */}
+        {selectedDevice && ghosts.length > 0 && (
+          <g className="device-trail" style={{ color: pickedColour }}>
+            {floorTrail.length > 1 && <polyline points={floorTrail.map((s) => `${s.x},${s.y}`).join(' ')} />}
+            {ghosts.map((s, i) => {
+              const age = Math.max(0, Math.min(1, (tick - new Date(s.at).getTime()) / TRAIL_KEEP_MS));
+              return <circle key={i} cx={s.x} cy={s.y} r={5 + (4 * (i + 1)) / floorTrail.length} style={{ opacity: 0.2 + 0.6 * (1 - age) }} />;
+            })}
           </g>
         )}
+        {lastStep && (
+          <g className="anon picked gone" style={{ color: pickedColour }}>
+            <circle className="halo" cx={lastStep.x} cy={lastStep.y} r={26} />
+            <circle className="ring" cx={lastStep.x} cy={lastStep.y} r={16} />
+          </g>
+        )}
+
+        {/* Unregistered phones the real nodes hear: no name, no identity, faded with distance. */}
+        {dots.map((d) => {
+          const picked = d.hash === selectedDevice;
+          return (
+            <g
+              key={d.id}
+              className={['anon', d.stable ? 'stable' : '', picked ? 'picked' : ''].join(' ').trim()}
+              style={{
+                color: anonColour(d.hue),
+                opacity: (0.45 + 0.5 * Math.max(0, Math.min(1, (d.rssi + 85) / 50))) * (selectedDevice && !picked ? 0.15 : 1),
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectDevice(d.hash);
+              }}
+            >
+              {picked && <circle className="halo" cx={d.x} cy={d.y} r={26} />}
+              {picked && <circle className="ring" cx={d.x} cy={d.y} r={16} />}
+              <circle className="anon-dot" cx={d.x} cy={d.y} r={9} />
+            </g>
+          );
+        })}
 
         {floorPins.map((p) => (
           <g key={p.nodeId} className={`pin${p.pending ? ' pending' : ''}`} aria-label={copy.admin.pinLabel(p.nodeId)}>

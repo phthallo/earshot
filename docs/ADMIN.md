@@ -20,7 +20,8 @@ CORS: the bridge echoes `Origin` with `Access-Control-Allow-Credentials: true` o
 Tables in SpacetimeDB, all public, written only by ingest identities.
 
 ```
-venue  { venueId: string PK, name: string, ownerLogin: string, createdAt: timestamp }
+venue  { venueId: string PK, name: string, ownerLogin: string, createdAt: timestamp,
+         ingestKeyHash: string ('' until a relay key is made) }
 floor  { floorKey: string PK ("<venueId>/<index>"), venueId: string, index: u8, name: string,
          imageUrl: string, width: f32, height: f32 }
 board  { mac: string PK, nodeId: u16, ownerLogin: string, venueId: string, flashedAt: timestamp }
@@ -28,7 +29,7 @@ node   unchanged: nodeId PK, zoneId, label, floor, x, y, isReal, lastSeenAt
 venue_node { nodeId: u16 PK, venueId: string }
 ```
 
-Reducers (ingest only): `upsertVenue`, `upsertFloor`, `placeNode { nodeId, venueId, floor, x, y, label }`, `rememberBoard { mac, nodeId, ownerLogin, venueId }`, `forgetBoard { mac }`.
+Reducers (ingest only): `upsertVenue`, `setVenueKey { venueId, keyHash }`, `upsertFloor`, `placeNode { nodeId, venueId, floor, x, y, label }`, `claimNodes { venueId, nodeIds }`, `rememberBoard { mac, nodeId, ownerLogin, venueId }`, `forgetBoard { mac }`. `pushAnonPoints { venueId, points }` replaces one venue's dots; `anon_point` rows carry `venueId`.
 
 The built-in Cal Hacks venue is `venueId: "calhacks"`, owner `""`, upserted by the bridge at startup with floors 1 "Ground floor" and 2 "Mezzanine". Any signed-in user may place nodes there (hackathon demo). Other venues accept writes only from their owner. Bridge env: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` (GitHub OAuth app with callback `<PUBLIC_URL>/api/auth/github/callback`), `SESSION_SECRET` (random per process when unset, so sessions end on restart), `CLIENT_URL` (the only non-localhost origin `return` may point at), `PUBLIC_URL` (where browsers reach the bridge).
 
@@ -40,9 +41,24 @@ Bridge routes, cookie required, JSON bodies unless noted:
 | `POST /api/admin/venues` | `{ venueId, name }` | `venueId` is a slug `[a-z0-9-]{2,40}`. 409 if taken by someone else. |
 | `POST /api/admin/venues/{venueId}/floors` | multipart: `index`, `name`, `image` (png/jpg/webp, max 10 MB) | Saves to `data/uploads/<venueId>/<index>.<ext>` (gitignored), served at `/uploads/...`, upserts the floor row with the image's pixel size. `imageUrl` is absolute: `PUBLIC_URL` or the request origin plus the upload path. The Cal Hacks floors keep `/venue-main.jpg` and `/venue-mezz.jpg`, served by the client. |
 | `POST /api/admin/nodes/place` | `{ nodeId, venueId, floor, x, y, label? }` | Upserts the node row and `venue_node`. A node already tied to another venue is refused. For `calhacks` the bridge also updates its in-memory node list so anonymous dots and the mock use the new position, and writes the placement to `data/placed-nodes.json` (gitignored), which overrides `nodes.json` at the next start. Plan units: for `calhacks` the 2956x1380 plan; for uploaded floors, image pixels. |
+| `POST /api/admin/venues/{venueId}/key` | | Makes a new relay key, stores only its SHA-256 and returns `{ key, command }` once. The old key stops working at once. Owner only (anyone signed in for `calhacks`). |
 | `POST /api/admin/boards` | `{ mac, nodeId, venueId }` | remember a flashed board. |
 | `DELETE /api/admin/boards/{mac}` | | forget it. Only the login that remembered it may. |
 | `GET /api/venues/calhacks/export` | | JSON bundle of the hardcoded render: `{ venueId, name, plan: {width, height, metersPerUnit}, floors: [{index, name, imageUrl}], zones, nodes, landmarks }`. Served as a download (`Content-Disposition: attachment; filename=calhacks-venue.json`). No auth. |
+
+## Relays: many venues, one bridge
+
+A hosted bridge cannot see a USB board, so each venue runs a relay next to its boards:
+
+```
+bridge --relay --serial /dev/ttyACM0 --connect api.example.com:9000 --key es_…
+```
+
+The Venues page prints that command when a key is made (`RELAY_KEY` in the environment works instead of `--key`). The relay opens the port, dials the bridge's TCP listener, sends `{"t":"auth","key":"es_…"}` and then forwards the boards' JSON lines unchanged; bridge commands (walk capture on/off) flow back to the first port. It reconnects on either side.
+
+On the bridge, a TCP peer that is not loopback must send the auth line first or the connection is closed with `{"t":"auth","ok":false,"msg":…}`. A good key answers `{"t":"auth","ok":true,"venue":"expo"}`, and from then on only node ids tied to that venue in `venue_node` are accepted; others are dropped and logged once. Loopback peers and serial ports are the built-in venue and need no key. `--node` sniffers take `--key` the same way.
+
+Each venue gets its own anonymous-dot tracker: node positions come from the `node` rows placed on the admin page (re-read every 20 s and when a node is placed), zones are none, and dots are pushed with the venue id. Uploaded plans carry no scale, so ring radii assume 0.03 m per pixel. The admin page draws the venue's dots on its floor image. The hall map only shows `calhacks` dots.
 
 ## Flashing from the browser
 

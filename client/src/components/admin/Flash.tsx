@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError, api } from '../../api';
 import { copy } from '../../copy';
 
-const ESP_WEB_TOOLS = 'https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module';
+const ESP_WEB_TOOLS = 'https://unpkg.com/esp-web-tools@10.1.1/dist/web/install-button.js?module';
 const BAUD = 115200;
 const HELLO_TIMEOUT_MS = 5000;
 
@@ -45,8 +45,10 @@ async function setNodeId(port: SerialPort, id: number): Promise<Hello> {
       buffer = lines.pop() ?? '';
       for (const line of lines) {
         try {
-          const msg = JSON.parse(line.trim()) as Partial<Hello>;
-          if (msg.t === 'hello' && typeof msg.mac === 'string') return msg as Hello;
+          const msg = JSON.parse(line.trim()) as { t?: string; id?: number; fw?: string; mac?: string; msg?: string };
+          // A board that reboots on port open sends its old hello first; only the one with the new id counts.
+          if (msg.t === 'hello' && typeof msg.mac === 'string' && msg.id === id) return msg as Hello;
+          if (msg.t === 'error' && typeof msg.msg === 'string') throw new Error(msg.msg);
         } catch {
           // boot log or a partial line
         }

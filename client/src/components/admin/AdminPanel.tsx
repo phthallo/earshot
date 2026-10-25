@@ -81,12 +81,13 @@ export function AdminPanel({ venueId, onVenue, floor, onFloor }: Props) {
   const [placing, setPlacing] = useState<number | undefined>();
   const [pending, setPending] = useState<Pin | null>(null);
   const [placeStatus, setPlaceStatus] = useState<{ kind: 'ok' | 'warn'; text: string } | null>(null);
-  // Nodes offered for placing: the venue's flashed boards, nodes already placed in it, and the demo trio for Cal Hacks.
+  // Nodes offered for placing: the venue's flashed boards, real nodes already placed in it (ids from 100 up,
+  // the same rule as the server; the simulated crowd's nodes below that are not placeable) and the demo trio.
   const nodeIds = useMemo(() => {
     const ids = new Set<number>([
       ...(venueId === CALHACKS ? CALHACKS_NODES : []),
       ...boards.map((b) => b.nodeId),
-      ...venueNodes.filter((v) => v.venueId === venueId).map((v) => v.nodeId),
+      ...venueNodes.filter((v) => v.venueId === venueId && v.nodeId >= 100).map((v) => v.nodeId),
     ]);
     return [...ids].sort((a, b) => a - b);
   }, [venueId, boards, venueNodes]);

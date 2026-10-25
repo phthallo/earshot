@@ -27,7 +27,9 @@ type Props = {
 export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, placing, onPlacing, placeStatus, onBack, onChanged, flash }: Props) {
   const now = useNow(30000);
   const builtIn = venue.venueId === CALHACKS;
-  const [index, setIndex] = useState(String(floors.length + 1));
+  const [index, setIndex] = useState('');
+  // Floors arrive over the subscription after mount, so the suggested number follows them.
+  const nextIndex = String(floors.reduce((m, f) => Math.max(m, f.index), 0) + 1);
   const [name, setName] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -35,14 +37,14 @@ export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, plac
 
   async function upload(e: FormEvent) {
     e.preventDefault();
-    const i = Number(index);
+    const i = Number(index || nextIndex);
     if (!image || !name.trim() || !Number.isInteger(i) || i < 0 || i > 255) return;
     setUploading(true);
     setUploadError('');
     try {
       await api.uploadFloor(venue.venueId, i, name.trim(), image);
       await onChanged();
-      setIndex(String(i + 1));
+      setIndex('');
       setName('');
       setImage(null);
       (e.target as HTMLFormElement).reset();
@@ -94,7 +96,7 @@ export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, plac
             <div className="row">
               <label className="short">
                 {copy.admin.floorIndexLabel}
-                <input type="number" inputMode="numeric" min={0} max={255} value={index} onChange={(e) => setIndex(e.target.value)} required />
+                <input type="number" inputMode="numeric" min={0} max={255} value={index || nextIndex} onChange={(e) => setIndex(e.target.value)} required />
               </label>
               <label>
                 {copy.admin.floorNameLabel}

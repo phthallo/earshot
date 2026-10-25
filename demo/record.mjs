@@ -61,7 +61,7 @@ const seconds = (id) => shots.find((s) => s.id === id).seconds + 1;
 
 try {
   if (wanted('orbit')) {
-    await page.goto(`${APP}/?floor=2`, 5000);
+    await page.goto(`${APP}/map?floor=2`, 5000);
     await page.css(HIDE);
     const b = await sceneBox(page);
     const c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
@@ -72,7 +72,7 @@ try {
   }
 
   if (wanted('plan-zoom')) {
-    await page.goto(`${APP}/?floor=2&mode=2d&zone=mezz_hack`, 4000);
+    await page.goto(`${APP}/map?floor=2&mode=2d&zone=mezz_hack`, 4000);
     await page.css(HIDE);
     const z = await selectedBox(page);
     await page.eval(`history.replaceState(null, '', '/?floor=2&mode=2d'); dispatchEvent(new PopStateEvent('popstate'));`);
@@ -84,7 +84,7 @@ try {
   }
 
   if (wanted('zone-card')) {
-    await page.goto(`${APP}/?floor=2&mode=2d`, 4000);
+    await page.goto(`${APP}/map?floor=2&mode=2d`, 4000);
     await page.css(HIDE);
     await record(page, 'zone-card', seconds('zone'), async () => {
       await sleep(1500);
@@ -94,7 +94,7 @@ try {
 
   if (wanted('device')) {
     const hash = await pickDevice();
-    await page.goto(`${APP}/?floor=2&mode=2d&zone=mezz_hack`, 4000);
+    await page.goto(`${APP}/map?floor=2&mode=2d&zone=mezz_hack`, 4000);
     await page.css(HIDE);
     const z = await selectedBox(page);
     await page.eval(`history.replaceState(null, '', '/?floor=2&mode=2d'); dispatchEvent(new PopStateEvent('popstate'));`);
@@ -107,7 +107,7 @@ try {
   }
 
   if (wanted('xray')) {
-    await page.goto(`${APP}/?floor=2&xray=1`, 5000);
+    await page.goto(`${APP}/map?floor=2&xray=1`, 5000);
     await page.css(HIDE);
     const b = await sceneBox(page);
     const c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };

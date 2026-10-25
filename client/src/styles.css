@@ -51,7 +51,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 .app { display: grid; grid-template-rows: auto 1fr; min-height: 100dvh; }
-.app.view-map, .app.with-plan { height: 100dvh; overflow: hidden; }
+.app.view-map { height: 100dvh; overflow: hidden; }
 
 /* The planet from the hero, bleeding off the top-left corner with the lettering on it. */
 .planet { position: fixed; left: clamp(-150px, -9vw, -100px); top: clamp(-250px, -15vw, -190px); width: clamp(340px, 30vw, 460px); z-index: 0; pointer-events: none; user-select: none; }
@@ -124,8 +124,6 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
   .floors .divider { display: none; }
   /* Other pages get the screen; the map is one tap away on the tab bar. */
   .app:not(.view-map) .map, .app:not(.view-map) .floors { display: none; }
-  /* Placing nodes needs the plan; the admin sheet sits over it like the zone card. */
-  .app.with-plan .map { display: grid; }
   .planet { display: none; }
 }
 /* The admin page has its own floor switcher; the map controls would act on a plan that is not shown. */
@@ -246,6 +244,13 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
   color-scheme: light;
 }
 .panel:empty { display: none; }
+/* Drag handle on each map card: a short bar at the top, like a sheet's. */
+.side .panel { position: relative; }
+.grip { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 56px; min-height: 0; height: 18px; padding: 0; border: none; border-radius: 0; background: none; cursor: grab; touch-action: none; z-index: 1; }
+.grip::before { content: ''; display: block; width: 36px; height: 4px; margin: 7px auto; border-radius: 2px; background: var(--ink-3); opacity: 0.5; }
+.grip:hover::before, .grip:focus-visible::before { opacity: 1; }
+.panel.dragging { outline: 2px solid var(--sky); outline-offset: 2px; }
+.panel.dragging .grip::before { opacity: 1; background: var(--sky); }
 .sheet { padding: 0 0 8px; }
 .sheet + .sheet { border-top: 1px solid rgba(15, 29, 91, 0.12); padding-top: 16px; }
 .sheet h2 { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: clamp(1.7rem, 2.6vw, 2.2rem); line-height: 0.95; letter-spacing: -0.045em; margin: 0 0 10px; color: var(--navy-3); text-wrap: balance; }
@@ -257,7 +262,6 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
 .warn { color: var(--danger); margin: 8px 0 0; font-weight: 700; }
 
 /* DDoski flies under the short pages so the card never ends in blank space. */
-.art { display: block; width: min(60%, 260px); margin: 18px auto 0; pointer-events: none; user-select: none; }
 
 .stack { display: grid; gap: 12px; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
@@ -317,6 +321,10 @@ details summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var
 .whoami { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
 .whoami img { width: 24px; height: 24px; border-radius: 50%; }
 .whoami .quiet { margin-left: auto; }
+.config-head { display: flex; align-items: center; justify-content: space-between; }
+.config-head h2 { margin: 0; }
+/* Setup is a long card: it scrolls on its own rather than growing past the map. */
+.side .panel.card-setup { overflow: auto; }
 .venues, .floor-list, .boards { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; }
 .venues li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .boards li { display: grid; grid-template-columns: auto 1fr auto; gap: 0 10px; align-items: center; }
@@ -334,11 +342,21 @@ input[type='file'] { padding: 8px 10px; }
 .progress { font-weight: 700; font-size: 16px; color: var(--warm); margin: 0 0 8px; }
 .recording { color: var(--warm); }
 
-.askbar { display: flex; gap: 8px; }
-.askbar input { flex: 1; }
+/* The question box gets the whole row; the buttons sit under it. */
+.askbar { display: grid; gap: 10px; }
+.askbar input { width: 100%; min-height: 52px; font-size: 1.05rem; }
+.askbar .row { display: flex; gap: 8px; }
+.askbar.listening input { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(255, 190, 80, 0.3); }
+.listening-hint { margin: 0; color: var(--warm); }
+.mic { display: inline-flex; align-items: center; gap: 8px; }
 .mic.on { background: var(--amber); color: var(--night); border-color: var(--amber); }
+.mic .pulse { width: 10px; height: 10px; border-radius: 50%; background: #b3261e; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.45; } }
 .examples { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
-.turns { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 12px; }
+.ask .thread { margin-bottom: 12px; }
+.ask .thread .hint { margin: 0 0 6px; }
+.turns { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.turns:empty { display: none; }
 .turns .q { margin: 0; color: var(--ink-3); }
 .turns .a { margin: 4px 0 0; white-space: pre-wrap; }
 .turns .a .quiet { display: block; margin-top: 4px; }
@@ -376,13 +394,22 @@ input[type='file'] { padding: 8px 10px; }
   /* The tab bar is fixed over the bottom of the page. */
   main { padding: 10px 16px calc(var(--tabs-h) + env(safe-area-inset-bottom) + 10px); }
   /* A tapped zone opens the site's dark sheet over the bottom of the map, above the tab bar. */
-  .view-map .panel, .with-plan .panel {
+  .view-map .panel {
     --ink: #f5f4f4; --ink-2: #c5d3f3; --ink-3: #98acd9; --good: var(--green); --warm: var(--amber); --danger: #ff9b9b; --field: rgba(255, 255, 255, 0.08);
     position: fixed; left: 0; right: 0; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom)); max-height: 46dvh; overflow: auto; background: rgba(8, 11, 35, 0.9); backdrop-filter: blur(8px); border-top: 1px solid var(--hairline); border-radius: 16px 16px 0 0; padding: 8px 16px 14px; box-shadow: 0 -1rem 3rem rgba(3, 7, 34, 0.5); z-index: 2; color-scheme: dark;
   }
-  .view-map .panel .sheet h2, .with-plan .panel .sheet h2 { color: var(--ink); }
-  .view-map .panel .sheet h3, .with-plan .panel .sheet h3 { border-color: var(--sky); color: var(--sky); }
-  .view-map .panel .link, .view-map .panel details summary, .with-plan .panel .link { color: var(--sky-2); }
+  /* On the map the sheet is a stack of cards (picked zone, phone, Ask) over the bottom of the map. */
+  .view-map .sides { position: fixed; left: 0; right: 0; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom)); max-height: 60dvh; overflow: auto; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+  .view-map .side { display: contents; }
+  /* Pins the stack to the bottom without clipping its top when it is taller than the sheet. */
+  .view-map .sides::before { content: ''; order: -2; margin-top: auto; }
+  /* Right-side cards (the picked zone or phone) sit nearest the map, left-side cards (Ask) at the bottom. */
+  .view-map .side.right .panel { order: -1; }
+  .view-map .side .panel { position: relative; inset: auto; flex: none; max-height: none; overflow: visible; border-radius: 16px; padding-top: 24px; }
+  .view-map .side .panel { margin: 0 8px; border: 1px solid var(--hairline); }
+  .view-map .panel .sheet h2 { color: var(--ink); }
+  .view-map .panel .sheet h3 { border-color: var(--sky); color: var(--sky); }
+  .view-map .panel .link, .view-map .panel details summary { color: var(--sky-2); }
   .view-map .panel .zone-head h2 { color: #080808; }
   .view-map .panel .meter { background: rgba(255, 255, 255, 0.15); }
   .view-map .panel .here .mate { color: var(--sand); }
@@ -398,13 +425,33 @@ input[type='file'] { padding: 8px 10px; }
   .banner { grid-column: 1 / -1; }
   .map { grid-row: 2; }
   .panel { grid-row: 2; overflow: auto; }
+  /* Map page: cards left and right of the map, each exactly as tall as its content. An empty
+     side collapses so the map takes the room. */
+  main.view-map { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .sides { display: contents; }
+  .side { grid-row: 2; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: auto; width: clamp(300px, 26vw, 400px); }
+  .side.left { grid-column: 1; }
+  .view-map .map { grid-column: 2; }
+  .side.right { grid-column: 3; }
+  .side:empty { display: none; }
+  .side .panel { grid-row: auto; flex: none; overflow: visible; }
+  /* The last card on each side takes the height left, so both sides reach the bottom of the map. */
+  .side .panel:last-child { flex: 1 1 auto; min-height: 0; }
+  /* In the Ask card the thread grows and the question box stays at the bottom. */
+  .side .panel.card-ask { display: flex; flex-direction: column; }
+  .side .panel.card-ask .sheet.ask { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .side .panel.card-ask .thread { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+  /* The thread reads bottom-up like a chat: newest answer and the examples sit by the question box. */
+  .side .panel.card-ask .thread > :first-child { margin-top: auto; }
   /* Short pages end where their content ends instead of stretching to the map's height. */
   main:not(.view-map) .panel { align-self: start; max-height: 100%; }
-  /* Nothing to show beside the map: the hall gets the whole width. */
-  main.view-map:has(.panel:empty) { grid-template-columns: 1fr; }
+  /* The venues list has no plan beside it: one centred column. */
+  main.view-admin { grid-template-columns: minmax(320px, 560px); justify-content: center; }
   .tabs { position: static; display: flex; gap: clamp(10px, 1.6vw, 22px); background: none; backdrop-filter: none; border: none; padding: 0; grid-column: 4; grid-row: 1; align-self: center; }
   .tabs a { padding: 0; height: auto; font-size: 15px; }
   .tabs a.on { box-shadow: none; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; text-decoration-color: var(--sky-2); }
+  /* The way out of this venue: a divider and a quieter, sentence-case link. */
+  .tabs a.away { margin-left: 6px; padding-left: clamp(10px, 1.6vw, 22px); border-left: 1px solid var(--hairline); text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-3); }
 }
 
 @media (prefers-reduced-motion: reduce) {

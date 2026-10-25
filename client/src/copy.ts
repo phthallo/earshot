@@ -6,11 +6,10 @@ export const copy = {
   nav: {
     map: 'Map',
     me: 'Me',
-    team: 'Team',
     ask: 'Ask',
     privacy: 'Privacy',
     admin: 'Venues',
-    about: 'About',
+    myVenues: 'My venues',
   },
 
   admin: {
@@ -19,9 +18,21 @@ export const copy = {
     signInGithub: 'Sign in with GitHub',
     localSession: 'Signed in locally, GitHub keys not set',
     signOut: 'Sign out',
+    mockTitle: 'Simulated crowd',
+    mockOn: 'Simulated crowd is on.',
+    mockOff: 'Simulated crowd is off.',
+    mockTurnOff: 'Turn off',
+    mockTurnOn: 'Turn on',
+    mockBusy: 'Saving…',
+    mockHelp: 'Applies to every viewer and to Ask, which then sees only real nodes.',
+    setup: 'Set up',
+    setupTitle: 'Venue setup',
+    switchedToPlan: 'Switched to plan view so you can click where the node sits.',
+    notYours: 'This venue is not one of yours.',
     listTitle: 'Your venues',
     listEmpty: 'No venues yet.',
-    builtIn: 'Built in',
+    exampleTitle: 'Example venue',
+    exampleOpen: 'View a configured example venue',
     createTitle: 'Create a venue',
     nameLabel: 'Name',
     namePlaceholder: 'Cal Hacks 12.0',
@@ -97,7 +108,7 @@ export const copy = {
     live: 'Live count',
     surveyed: (time: string) => `Surveyed ${time}`,
     node: 'Seen by a node',
-    anon: 'Phone heard, not registered',
+    anon: 'Unregistered phone',
     stable: 'Fixed address, trackable',
     app: 'Phone app',
     you: 'You',
@@ -116,6 +127,10 @@ export const copy = {
       live: (time: string) => `Counted by a node at ${time}.`,
       survey: (time: string) => `Surveyed by a volunteer at ${time}.`,
     } as Record<string, (time: string) => string>,
+  },
+
+  cards: {
+    move: 'Drag to move, or tap to switch sides',
   },
 
   map: {
@@ -164,16 +179,6 @@ export const copy = {
     deleteNo: 'Keep my data',
   },
 
-  team: {
-    title: 'Find my team',
-    none: 'Set your team name to see teammates and where they were last seen.',
-    goMe: 'Set my team',
-    alone: (team: string) => `You are the only one in ${team} so far.`,
-    lastSeen: 'last seen',
-    notSeen: 'not seen yet',
-    via: { node: 'node', app: 'app' } as Record<string, string>,
-  },
-
   walk: {
     title: 'Wifi signature',
     intro: 'Walk past a live node three times. Each walk is recorded and three synthetic variations are added.',
@@ -190,15 +195,15 @@ export const copy = {
 
   ask: {
     title: 'Ask the venue',
+    intro: 'Answers come from the live counts and the people registered on the map. Try one of these:',
     placeholder: 'Where is it quietest right now?',
     send: 'Ask',
     thinking: 'Thinking…',
     speak: 'Speak',
-    stop: 'Stop',
+    stop: 'Stop listening',
+    listeningHint: 'Speak now. Your question sends when you stop talking.',
     listen: 'Read aloud',
     micDenied: 'Microphone blocked. Allow it in the browser and try again.',
-    off: 'Ask is off on this bridge.',
-    offDetail: 'The map, your team and the privacy page still work.',
     examples: ['Where is food least busy?', 'Which hacking floor has room?', 'Is anyone from my team near the stage?'],
   },
 
@@ -210,7 +215,7 @@ export const copy = {
   },
 
   device: {
-    title: 'Phone heard, not registered',
+    title: 'Unregistered phone',
     close: 'Close',
     mac: 'Wifi address',
     noMac: 'This node sends only the hash.',

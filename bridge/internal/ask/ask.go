@@ -1,6 +1,9 @@
 // Package ask answers questions about the venue with Claude. Claude gets a
 // snapshot of the public tables and one tool, run_sql, that only runs
 // SELECTs against a whitelist of public tables.
+//
+// Claude is reached either through the Anthropic API (anthropic.go) or
+// through an OpenAI-compatible chat completions proxy (openai.go).
 package ask
 
 import (
@@ -10,10 +13,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
-	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 
 	"venuemap/bridge/internal/dwell"
 	"venuemap/bridge/internal/history"
@@ -60,19 +59,74 @@ func GuardSQL(q string) (string, error) {
 	return q, nil
 }
 
+// backend is one model API. complete sends the system prompt, the first
+// user message, every earlier exchange and the tool list, and returns the
+// model's next reply.
+type backend interface {
+	complete(ctx context.Context, sys, user string, prior []exchange, tools []toolSpec) (reply, error)
+}
+
+type toolSpec struct {
+	Name, Desc string
+	Props      map[string]any
+	Required   []string
+}
+
+type toolCall struct {
+	ID, Name string
+	Input    string // JSON object
+}
+
+type toolResult struct {
+	ID, Output string
+	IsErr      bool
+}
+
+type stopReason int
+
+const (
+	stopEnd stopReason = iota
+	stopTool
+	stopMax
+	stopRefusal
+)
+
+type reply struct {
+	Text  string
+	Calls []toolCall
+	Stop  stopReason
+	// raw is the backend's own form of this assistant turn, replayed as is
+	// on the next round.
+	raw any
+}
+
+// exchange is one assistant reply and the tool results it asked for.
+type exchange struct {
+	reply   reply
+	results []toolResult
+}
+
 type Asker struct {
-	db     *stdb.Client
-	client anthropic.Client
-	model  string
+	db  *stdb.Client
+	llm backend
 	// Optional. Search adds the guide tool, History the zone_history tool,
 	// Dwell the zone_dwell tool.
 	Search  *moss.Client
 	History *history.Store
 	Dwell   *dwell.Tracker
+	// MockOn, when set, tells the model whether the simulated crowd is on.
+	MockOn func() bool
 }
 
+// New talks to the Anthropic API directly.
 func New(db *stdb.Client, apiKey, model string) *Asker {
-	return &Asker{db: db, client: anthropic.NewClient(option.WithAPIKey(apiKey)), model: model}
+	return &Asker{db: db, llm: newAnthropic(apiKey, model)}
+}
+
+// NewOpenAI talks to an OpenAI-compatible chat completions endpoint, such
+// as a proxy that fronts Claude. baseURL ends before /chat/completions.
+func NewOpenAI(db *stdb.Client, baseURL, apiKey, model string) *Asker {
+	return &Asker{db: db, llm: newOpenAI(baseURL, apiKey, model)}
 }
 
 const system = `You answer questions from hackers at Cal Hacks 13.0 about the venue, the Palace of Fine Arts, using live data from a SpacetimeDB database.
@@ -94,20 +148,12 @@ Rules for answers:
 
 const toolDesc = `Run one read-only SQL query against the live venue database. SpacetimeDB SQL: SELECT columns or * FROM table [JOIN table ON a.col = b.col] [WHERE ...] [LIMIT n]. No ORDER BY, no GROUP BY, no subqueries. COUNT(*) AS n works. Tables: node(node_id, zone_id, floor, label, x, y, is_real, last_seen_at), zone(zone_id, name, kind, floor, capacity), zone_activity(node_id, zone_id, score, smoothed_score, state, pir, anon_count, updated_at), anon_zone_count(zone_id, count, source, updated_at) where source is live, mock or survey, person(person_id, display_name, team, color, visible, paired, created_at), position(person_id, node_id, zone_id, x, y, source, median_rssi, confidence, updated_at) where source is node or app. The column named floor cannot be selected by name (it parses as a function); use SELECT * instead. Never select identity.`
 
-func tool(name, desc string, props map[string]any, required ...string) anthropic.BetaToolUnionParam {
-	return anthropic.BetaToolUnionParam{OfTool: &anthropic.BetaToolParam{
-		Name:        name,
-		Description: anthropic.String(desc),
-		InputSchema: anthropic.BetaToolInputSchemaParam{
-			Properties:  props,
-			Required:    required,
-			ExtraFields: map[string]any{"additionalProperties": false},
-		},
-	}}
+func tool(name, desc string, props map[string]any, required ...string) toolSpec {
+	return toolSpec{Name: name, Desc: desc, Props: props, Required: required}
 }
 
-func (a *Asker) tools() []anthropic.BetaToolUnionParam {
-	out := []anthropic.BetaToolUnionParam{tool("run_sql", toolDesc, map[string]any{
+func (a *Asker) tools() []toolSpec {
+	out := []toolSpec{tool("run_sql", toolDesc, map[string]any{
 		"query": map[string]any{"type": "string", "description": "The SELECT statement."},
 	}, "query")}
 	if a.Search != nil {
@@ -189,7 +235,8 @@ func (a *Asker) runTool(ctx context.Context, name, rawInput string) (string, boo
 }
 
 // snapshot is a compact JSON view of zones, activity and visible people.
-func (a *Asker) snapshot(ctx context.Context) (string, error) {
+// With liveOnly, zones without a real node keep no movement or phone count.
+func (a *Asker) snapshot(ctx context.Context, liveOnly bool) (string, error) {
 	zones, err := a.db.Sql(ctx, "SELECT * FROM zone")
 	if err != nil {
 		return "", err
@@ -262,19 +309,34 @@ func (a *Asker) snapshot(ctx context.Context) (string, error) {
 	}
 	out := make([]*zoneView, 0, len(order))
 	for _, id := range order {
-		out = append(out, byZone[id])
+		v := byZone[id]
+		if liveOnly && v.RealNodes == 0 {
+			v.Movement, v.Phones = 0, 0
+		}
+		out = append(out, v)
 	}
 	b, err := json.Marshal(out)
 	return string(b), err
 }
 
-// Ask runs the tool loop and returns Claude's final text.
-func (a *Asker) Ask(ctx context.Context, question string) (string, error) {
-	snap, err := a.snapshot(ctx)
+// Ask runs the tool loop and returns Claude's final text. With liveOnly the
+// viewer has hidden the simulated crowd, so zones without a real node are
+// sent with no counts, the same as the map shows them.
+func (a *Asker) Ask(ctx context.Context, question string, liveOnly bool) (string, error) {
+	snap, err := a.snapshot(ctx, liveOnly)
 	if err != nil {
 		return "", fmt.Errorf("snapshot: %w", err)
 	}
-	user := fmt.Sprintf("Snapshot of the venue right now (JSON, one entry per zone):\n%s\n\nQuestion: %s", snap, question)
+	crowd := ""
+	switch {
+	case liveOnly:
+		crowd = "The viewer turned on live only and sees real phones only. Zones with real_nodes 0 have no counts: say they have no node yet. Never mention a simulated, mock or demo crowd. If you query the database, ignore anon_zone_count rows whose source is mock and zone_activity rows from nodes whose is_real is false.\n\n"
+	case a.MockOn != nil && a.MockOn():
+		crowd = "The simulated crowd is on: zones with real_nodes 0 show demo numbers, not real phones.\n\n"
+	case a.MockOn != nil:
+		crowd = "The simulated crowd is off: only zones with real_nodes above 0 have counts, the rest have no node yet. Say so instead of guessing.\n\n"
+	}
+	user := fmt.Sprintf("Snapshot of the venue right now (JSON, one entry per zone):\n%s\n\n%sQuestion: %s", snap, crowd, question)
 	return a.loop(ctx, system, user)
 }
 
@@ -304,46 +366,28 @@ func (a *Asker) PrivacyReceipt(ctx context.Context, personID int) (string, error
 }
 
 func (a *Asker) loop(ctx context.Context, sys, user string) (string, error) {
-	messages := []anthropic.BetaMessageParam{
-		anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock(user)),
-	}
+	var prior []exchange
+	tools := a.tools()
 	for round := 0; round <= maxRounds; round++ {
-		resp, err := a.client.Beta.Messages.New(ctx, anthropic.BetaMessageNewParams{
-			Model:        anthropic.Model(a.model),
-			MaxTokens:    2048,
-			System:       []anthropic.BetaTextBlockParam{{Text: sys}},
-			Messages:     messages,
-			Tools:        a.tools(),
-			OutputConfig: anthropic.BetaOutputConfigParam{Effort: anthropic.BetaOutputConfigEffortLow},
-			Betas:        []anthropic.AnthropicBeta{anthropic.AnthropicBetaServerSideFallback2026_07_01},
-			Fallbacks:    anthropic.BetaFallbacksParamUnion{OfDefault: constant.ValueOf[constant.Default]()},
-		})
+		r, err := a.llm.complete(ctx, sys, user, prior, tools)
 		if err != nil {
 			return "", err
 		}
-		if resp.StopReason == anthropic.BetaStopReasonRefusal {
+		if r.Stop == stopRefusal {
 			return "I can't answer that one.", nil
 		}
-		messages = append(messages, resp.ToParam())
-
-		var text strings.Builder
-		var results []anthropic.BetaContentBlockParamUnion
-		for _, block := range resp.Content {
-			switch v := block.AsAny().(type) {
-			case anthropic.BetaTextBlock:
-				text.WriteString(v.Text)
-			case anthropic.BetaToolUseBlock:
-				out, isErr := a.runTool(ctx, v.Name, v.JSON.Input.Raw())
-				results = append(results, anthropic.NewBetaToolResultBlock(v.ID, out, isErr))
+		if r.Stop != stopTool || len(r.Calls) == 0 {
+			if r.Stop == stopMax {
+				return r.Text + "…", nil
 			}
+			return strings.TrimSpace(r.Text), nil
 		}
-		if resp.StopReason != anthropic.BetaStopReasonToolUse || len(results) == 0 {
-			if resp.StopReason == anthropic.BetaStopReasonMaxTokens {
-				return text.String() + "…", nil
-			}
-			return strings.TrimSpace(text.String()), nil
+		results := make([]toolResult, 0, len(r.Calls))
+		for _, c := range r.Calls {
+			out, isErr := a.runTool(ctx, c.Name, c.Input)
+			results = append(results, toolResult{ID: c.ID, Output: out, IsErr: isErr})
 		}
-		messages = append(messages, anthropic.NewBetaUserMessage(results...))
+		prior = append(prior, exchange{reply: r, results: results})
 	}
 	return "That took too many lookups. Try a narrower question.", nil
 }

@@ -10,6 +10,7 @@ Env:  BRIDGE_URL (default http://localhost:8080), AGENT_SEED_PHRASE,
       AGENTVERSE_KEY (optional; enables mailbox registration)
 """
 
+import asyncio
 import os
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -25,6 +26,10 @@ from uagents_core.contrib.protocols.chat import (
 )
 
 BRIDGE_URL = os.environ.get("BRIDGE_URL", "http://localhost:8080").rstrip("/")
+
+# uagents calls get_event_loop() at construction; Python 3.14 no longer
+# creates one implicitly on the main thread.
+asyncio.set_event_loop(asyncio.new_event_loop())
 
 agent = Agent(
     name="venue-concierge",
@@ -80,5 +85,36 @@ async def startup(ctx: Context):
     ctx.logger.info(f"bridge: {BRIDGE_URL}")
 
 
+def register_on_agentverse() -> None:
+    """Publish the agent's profile (name, chat protocol, endpoint) to Agentverse.
+
+    The endpoint is where Agentverse delivers messages to this agent, so it
+    is the mailbox URL when mailbox mode is on, not the web client. Without
+    a mailbox it has to be a public URL for this process (port 8001).
+    """
+    from uagents_core.utils.registration import (
+        RegistrationRequestCredentials,
+        register_chat_agent,
+    )
+
+    if agent._endpoints:
+        endpoint = agent._endpoints[0].url
+    else:
+        endpoint = os.environ.get("AGENT_ENDPOINT", "http://localhost:8001/submit")
+    register_chat_agent(
+        "calhacks-2",
+        endpoint,
+        active=True,
+        credentials=RegistrationRequestCredentials(
+            agentverse_api_key=os.environ["AGENTVERSE_KEY"],
+            agent_seed_phrase=os.environ["AGENT_SEED_PHRASE"],
+        ),
+        description="Live venue map concierge for Cal Hacks 13.0: where is quiet, how busy is food, where is a team.",
+        starter_prompts=["Where is quiet right now?", "How busy is food?", "Where is team lagoon?"],
+    )
+
+
 if __name__ == "__main__":
+    if os.environ.get("AGENTVERSE_KEY"):
+        register_on_agentverse()
     agent.run()

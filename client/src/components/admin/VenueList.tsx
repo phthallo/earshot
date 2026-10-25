@@ -28,19 +28,22 @@ export function VenueList({ venues, onOpen, onCreated }: { venues: AdminVenue[];
     }
   }
 
+  // The built-in venue has no owner; it is offered as an example, not as one of yours.
+  const mine = venues.filter((v) => v.ownerLogin !== '');
+  const example = venues.find((v) => v.ownerLogin === '');
+
   return (
     <>
       <section className="sheet">
         <h2>{copy.admin.listTitle}</h2>
-        {venues.length === 0 && <p className="hint">{copy.admin.listEmpty}</p>}
+        {mine.length === 0 && <p className="hint">{copy.admin.listEmpty}</p>}
         <ul className="venues">
-          {venues.map((v) => (
+          {mine.map((v) => (
             <li key={v.venueId}>
               <button type="button" className="link" onClick={() => onOpen(v.venueId)}>
                 {v.name}
               </button>
               <span className="muted">{v.venueId}</span>
-              {v.ownerLogin === '' && <span className="tag">{copy.admin.builtIn}</span>}
             </li>
           ))}
         </ul>
@@ -74,6 +77,14 @@ export function VenueList({ venues, onOpen, onCreated }: { venues: AdminVenue[];
           {error && <p className="warn">{error}</p>}
         </form>
       </section>
+      {example && (
+        <section className="sheet">
+          <h3>{copy.admin.exampleTitle}</h3>
+          <button type="button" className="link" onClick={() => onOpen(example.venueId)}>
+            {copy.admin.exampleOpen}
+          </button>
+        </section>
+      )}
     </>
   );
 }

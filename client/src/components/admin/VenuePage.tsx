@@ -22,10 +22,12 @@ type Props = {
   placeStatus: { kind: 'ok' | 'warn'; text: string } | null;
   onBack: () => void;
   onChanged: () => Promise<void>;
+  // Venue-wide controls shown under the title, such as the example's simulated crowd switch.
+  tools?: ReactNode;
   flash: ReactNode;
 };
 
-export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, placing, onPlacing, placeStatus, onBack, onChanged, flash }: Props) {
+export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, placing, onPlacing, placeStatus, onBack, onChanged, tools, flash }: Props) {
   const now = useNow(30000);
   const builtIn = venue.venueId === CALHACKS;
   const [index, setIndex] = useState('');
@@ -62,16 +64,17 @@ export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, plac
   return (
     <>
       <section className="sheet">
+        <h2>{venue.name}</h2>
         <button type="button" className="link" onClick={onBack}>
           {copy.admin.backToList}
         </button>
-        <h2>{venue.name}</h2>
         {builtIn && (
           <a className="button" href={api.exportUrl(venue.venueId)} download="calhacks-venue.json">
             {copy.admin.export}
           </a>
         )}
       </section>
+      {tools}
 
       <section className="sheet">
         <h3>{copy.admin.floorsTitle}</h3>

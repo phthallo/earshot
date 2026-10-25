@@ -4,7 +4,7 @@ import { TICK_MS } from './reducers/tick';
 
 export { default } from './tables';
 export { registerIngest, addIngest, seedNodes, seedZones, upsertVenue, setVenueKey, upsertFloor, placeNode, claimNodes, rememberBoard, forgetBoard } from './reducers/venue';
-export { pushMotionBatch, pushSightingsBatch, pushAnonPoints, pushCsi } from './reducers/ingest';
+export { pushMotionBatch, pushSightingsBatch, pushAnonPoints, pushCsi, clearMock } from './reducers/ingest';
 export { upsertPerson, setTeam, setVisible, startPairing, cancelPairing, bindMacFor, unbindDevice, deleteMe, setAppPosition, setSurveyCount } from './reducers/people';
 export { startWalk, cancelWalk, finishWalk, matchWalk, resetWalks } from './reducers/walks';
 export { tick } from './reducers/tick';

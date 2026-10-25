@@ -39,6 +39,7 @@ type Server struct {
 	HTTP               *http.Client
 	// OnPlace is told when a node is placed in a venue other than the built-in one.
 	OnPlace func(ctx context.Context, venueID string)
+	Mock    MockCrowd // nil without --mock
 }
 
 func (s *Server) Register(mux *http.ServeMux) {
@@ -53,6 +54,7 @@ func (s *Server) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/admin/nodes/place", s.withSession(s.placeNode))
 	mux.HandleFunc("POST /api/admin/boards", s.withSession(s.rememberBoard))
 	mux.HandleFunc("DELETE /api/admin/boards/{mac}", s.withSession(s.forgetBoard))
+	mux.HandleFunc("POST /api/admin/mock", s.withSession(s.setMock))
 	mux.HandleFunc("GET /api/venues/calhacks/export", s.export)
 	files := http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join(s.DataDir, "uploads"))))
 	mux.HandleFunc("GET /uploads/", func(w http.ResponseWriter, r *http.Request) {

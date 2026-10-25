@@ -1,6 +1,6 @@
 # Venue admin
 
-Sign in with GitHub, create a venue, upload one render per floor, flash nodes from the browser and place them on the plan by clicking. The bridge is the authority: it holds the GitHub session and is the only SpacetimeDB identity allowed to write venue, floor, node and board rows.
+The marketing page at `/` has the sign-in button; it leads to `/venues`, where you sign in with GitHub, open Cal Hacks or create a venue. The venue's page at `/venues/<id>` is its live map; "Set up" in the header (or `/venues/<id>/setup`) opens the card where you upload one render per floor, flash nodes from the browser, place them on the plan by clicking, make a relay key and export the venue. Cal Hacks lives at `/venues/calhacks`, with `/me` and `/privacy` pages beside the map; old `/map` links redirect there. The bridge is the authority: it holds the GitHub session and is the only SpacetimeDB identity allowed to write venue, floor, node and board rows.
 
 ## Sign-in
 
@@ -74,4 +74,4 @@ The firmware keeps the id in NVS (`venuemap/id`) and falls back to `CONFIG_VENUE
 
 ## Client
 
-New view `admin` (nav label "Venues"). States: signed out (GitHub button), venue list, venue page with three parts: floors (upload, list), nodes (boards remembered, flash button, set id), and place mode (pick a node, click the plan). For `calhacks` the plan is the existing 2D map; for other venues it is the uploaded image with node pins. The floor switcher lists the venue's floors.
+New view `admin` (nav label "Venues"). States: signed out (GitHub button, nothing else on the page), the list of the caller's own venues with the create form and a link to the built-in example venue (`calhacks`, which also carries the simulated crowd switch), venue page with three parts: floors (upload, list), nodes (boards remembered, flash button, set id), and place mode (pick a node, click the plan). For `calhacks` the plan is the existing 2D map; for other venues it is the uploaded image with node pins. The floor switcher lists the venue's floors.

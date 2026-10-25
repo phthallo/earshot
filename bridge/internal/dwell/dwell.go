@@ -1,9 +1,10 @@
 // Package dwell turns the persistence of a phone's hash into zone statistics.
 // Android 10+ and iOS 14+ keep one randomised MAC per wifi network, so a phone
 // joined to the venue wifi hashes to the same value all event. The tracker
-// remembers each hash in memory, with the zone it is in and when it got there,
-// and reports only aggregates: unique phones, returning phones and typical
-// stay per zone. Hashes never leave this process and are dropped after a day.
+// remembers each hash with the zone it is in and when it got there, and
+// reports aggregates per zone (unique phones, returning phones, typical stay)
+// plus one hash's own day for the device sheet. The state is saved to
+// data/dwell.json so a restart keeps it; hashes are dropped after a day.
 // Phones that only scan use a fresh MAC per burst and show up as one-off
 // visits, so their stays are discarded as noise.
 package dwell

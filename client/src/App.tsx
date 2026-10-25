@@ -1,34 +1,103 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { useReducer, useSpacetimeDB } from 'spacetimedb/react';
 import { reducers } from './module_bindings';
 import { copy } from './copy';
 import { api, type Health, type Step } from './api';
-import { useMe, useParam } from './hooks';
+import { useMe, useParam, usePath } from './hooks';
 import { VenueMap } from './components/VenueMap';
 // three.js is most of the bundle; the shell and the plan view do not wait for it.
 const VenueScene = lazy(() => import('./components/VenueScene').then((m) => ({ default: m.VenueScene })));
 import { RegisterSheet } from './components/RegisterSheet';
-import { TeamPanel } from './components/TeamPanel';
 import { WalkEnrol } from './components/WalkEnrol';
 import { AskBar } from './components/AskBar';
+import { Cards } from './components/Cards';
 import { PrivacyPage } from './components/PrivacyPage';
 import { ZoneHistory } from './components/ZoneHistory';
 import { ZoneDwell } from './components/ZoneDwell';
 import { DeviceSheet } from './components/DeviceSheet';
 import { ZoneCard } from './components/ZoneCard';
 import { AdminPanel } from './components/admin/AdminPanel';
+import { FloorPlan } from './components/admin/FloorPlan';
+import { VenueConfig } from './components/admin/VenueConfig';
+import { CALHACKS } from './components/admin/VenuePage';
+import { useVenueAdmin } from './components/admin/useVenueAdmin';
+import { Landing } from './components/landing/Landing';
 
-type View = 'map' | 'me' | 'team' | 'ask' | 'privacy' | 'admin';
-const VIEWS: View[] = ['map', 'me', 'team', 'ask', 'privacy', 'admin'];
+// A venue's pages: the map (Ask sits beside it, under whatever zone or phone is selected, so a
+// question and the thing it is about stay on screen together), Me and Privacy as settings pages,
+// and setup, which is the map with the organiser's tools card open.
+type View = 'map' | 'me' | 'privacy' | 'setup';
+type Tab = Exclude<View, 'setup'>;
+const TABS: Tab[] = ['map', 'me', 'privacy'];
 
+export const VENUES_PATH = '/venues';
+export const venuePath = (venueId: string, view: View = 'map') => `${VENUES_PATH}/${encodeURIComponent(venueId)}${view === 'map' ? '' : `/${view}`}`;
+const VENUE_PATH = /^\/venues\/([a-z0-9-]+)(?:\/(me|privacy|setup))?\/?$/;
+
+// Pages by path: / the marketing page, /venues (sign in, pick or create a venue) and
+// /venues/<id>[/me|/privacy|/setup], a venue's live map and its pages.
 export function App() {
+  const [path, go] = usePath();
+  const m = VENUE_PATH.exec(path);
+  const link = (to: string) => (e: MouseEvent) => {
+    e.preventDefault();
+    go(to);
+  };
+  if (m) return <LiveMap key={m[1]} go={go} link={link} venueId={m[1]} view={(m[2] as View | undefined) ?? 'map'} />;
+  if (path.startsWith(VENUES_PATH)) return <Venues go={go} link={link} />;
+  return <Landing link={link} />;
+}
+
+type Nav = { go: (path: string) => void; link: (to: string) => (e: MouseEvent) => void };
+
+// The planet sits outside the header so the header's stacking context does not put it over the logo.
+const Planet = () => <img className="planet" src="/brand/earth.png" alt="" aria-hidden="true" />;
+
+function Brand() {
+  return (
+    <a className="brand" href="https://calhacks.io" aria-label="Cal Hacks 13.0">
+      <img src="/brand/logo.svg" alt="" width="882" height="689" />
+    </a>
+  );
+}
+
+// The venues list. Plain Earshot: the Cal Hacks lettering belongs to the example venue's map.
+function Venues({ go, link }: Nav) {
+  return (
+    <div className="app view-admin">
+      <header className="top">
+        <div className="title">
+          <h1 className="wordmark">{copy.appName}</h1>
+        </div>
+        <nav className="tabs" aria-label="Pages">
+          <a href={VENUES_PATH} className="on" aria-current="page" onClick={link(VENUES_PATH)}>
+            {copy.nav.admin}
+          </a>
+        </nav>
+      </header>
+      <main className="view-admin">
+        <AdminPanel onVenue={(id) => go(id ? venuePath(id) : VENUES_PATH)} />
+      </main>
+    </div>
+  );
+}
+
+// A venue's live map. The Cal Hacks venue has the modelled hall (3D or plan, zones, the
+// simulated crowd, Ask, Me and Privacy); any other venue shows its uploaded floor images
+// with node pins and the phones its relay hears. Both carry the setup card behind "Set up".
+function LiveMap({ venueId, view: page, go, link }: Nav & { venueId: string; view: View }) {
   const { isActive, connectionError } = useSpacetimeDB();
   const me = useMe();
-  const [viewParam, setView] = useParam('view', 'map', true);
+  const hall = venueId === CALHACKS;
+  const admin = useVenueAdmin(venueId);
+  // Venues without the modelled hall have only the map and its setup.
+  const view: View = hall || page === 'setup' ? page : 'map';
+  const setup = view === 'setup';
+  // The floor, zone and phone picked on the map stay in the query across the venue's pages.
+  const setView = (v: View) => go(venuePath(venueId, v) + location.search);
   const [floorParam, setFloor] = useParam('floor', '1');
   const [zoneParam, setZone] = useParam('zone', '');
   const [deviceParam, setDevice] = useParam('device', '');
-  const [venueParam, setVenue] = useParam('venue', '', true);
   // Where the selected dot has been, from the sheet's poll, drawn on the map.
   const [trail, setTrail] = useState<Step[]>([]);
   const pickDevice = (hash: string) => {
@@ -40,14 +109,15 @@ export function App() {
   const xray = xrayParam === '1';
   const [liveParam, setLive] = useParam('live', '0');
   const liveOnly = liveParam === '1';
-  const floor = floorParam === '2' ? 2 : 1;
-  const mode = modeParam === '2d' ? '2d' : '3d';
+  const floors = hall ? [1, 2] : admin.floors.map((f) => f.index);
+  const floor = floors.includes(Number(floorParam)) ? Number(floorParam) : (floors[0] ?? 1);
+  // Placing a node needs a click on the plan, so a 3D map drops to the plan meanwhile.
+  const placing = setup && admin.placing !== undefined;
+  const mode = hall && modeParam !== '2d' && !placing ? '3d' : '2d';
+  const switchedToPlan = placing && modeParam !== '2d';
 
   const setVisible = useReducer(reducers.setVisible);
   const [health, setHealth] = useState<Health | null>(null);
-  // A bridge without Ask hides the tab; a saved ?view=ask link lands on the map.
-  const askOff = health?.ask === false;
-  const view = (VIEWS.includes(viewParam as View) && !(askOff && viewParam === 'ask') ? viewParam : 'map') as View;
   useEffect(() => {
     const poll = () => api.health().then(setHealth).catch(() => setHealth(null));
     poll();
@@ -55,91 +125,142 @@ export function App() {
     return () => clearInterval(id);
   }, []);
 
-  function showZone(zoneId: string, zoneFloor: number) {
-    setFloor(String(zoneFloor));
-    setZone(zoneId);
-    setView('map');
+  // Beside the map: the setup card when open, else the picked zone or phone and the Ask box.
+  // Other views have one panel.
+  let panel: ReactNode = null;
+  if (setup) {
+    panel = (
+      <Cards
+        cards={{
+          setup: (
+            <VenueConfig
+              admin={admin}
+              floor={floor}
+              onFloor={(f) => setFloor(String(f))}
+              onBack={() => go(VENUES_PATH)}
+              onClose={() => {
+                admin.setPlacing(undefined);
+                setView('map');
+              }}
+              switchedToPlan={switchedToPlan}
+            />
+          ),
+        }}
+      />
+    );
+  } else if (view === 'map' && !hall) {
+    panel = <Cards cards={{}} />;
+  } else if (view === 'map') {
+    const hidden = me && !me.visible;
+    panel = (
+      <Cards
+        cards={{
+          hidden: hidden && (
+            <p className="hint">
+              {copy.map.hidden}{' '}
+              <button type="button" className="link" onClick={() => setVisible({ visible: true })}>
+                {copy.map.show}
+              </button>
+            </p>
+          ),
+          device: deviceParam && <DeviceSheet hash={deviceParam} onTrail={setTrail} onClose={() => pickDevice('')} />,
+          zone: zoneParam && (
+            <>
+              <ZoneCard zoneId={zoneParam} liveOnly={liveOnly} onClose={() => setZone('')} />
+              <ZoneDwell zoneId={zoneParam} />
+            </>
+          ),
+          history: zoneParam && health?.history && <ZoneHistory zoneId={zoneParam} />,
+          ask: health?.ask !== false && <AskBar voice={health?.voice ?? false} liveOnly={liveOnly} />,
+        }}
+      />
+    );
+  } else if (view === 'me') {
+    panel = (
+      <>
+        <RegisterSheet />
+        <WalkEnrol />
+      </>
+    );
+  } else if (view === 'privacy') {
+    panel = <PrivacyPage mock={health?.mode?.includes('mock') ?? true} receipts={health?.ask ?? true} onGoToMe={() => setView('me')} />;
   }
 
   return (
-    <div className={`app view-${view}${view === 'admin' && venueParam ? ' with-plan' : ''}`}>
-      <img className="planet" src="/brand/earth.png" alt="" aria-hidden="true" />
+    <div className={`app view-${setup ? 'map' : view}`}>
+      {hall && <Planet />}
       <header className="top">
-        <a className="brand" href="https://calhacks.io" aria-label="Cal Hacks 13.0">
-          <img src="/brand/logo.svg" alt="" width="882" height="689" />
-        </a>
+        {hall && <Brand />}
         <div className="title">
           <h1 className="wordmark">{copy.appName}</h1>
-          <p className="tagline">{copy.tagline}</p>
+          <p className="tagline">{hall ? copy.tagline : (admin.venue?.name ?? venueId)}</p>
         </div>
         <nav className="tabs" aria-label="Pages">
-          {VIEWS.filter((v) => v !== 'ask' || !askOff).map((v) => (
-            <a key={v} href={`?view=${v}${floor === 2 ? '&floor=2' : ''}`} className={view === v ? 'on' : ''} aria-current={view === v ? 'page' : undefined} onClick={(e) => { e.preventDefault(); setView(v); }}>
-              {copy.nav[v]}
-            </a>
-          ))}
-          <a href="/landing/index.html">{copy.nav.about}</a>
+          {(hall ? TABS : (['map'] as Tab[])).map((v) => {
+            const on = view === v || (v === 'map' && setup);
+            return (
+              <a key={v} href={venuePath(venueId, v)} className={on ? 'on' : ''} aria-current={on ? 'page' : undefined} onClick={(e) => { e.preventDefault(); setView(v); }}>
+                {copy.nav[v]}
+              </a>
+            );
+          })}
+          {/* Leaves this venue: set apart from the venue's own pages. */}
+          <a href={VENUES_PATH} className="away" onClick={link(VENUES_PATH)}>
+            {copy.nav.myVenues}
+          </a>
         </nav>
         <nav className="floors" aria-label="Floor">
-          {[1, 2].map((f) => (
+          {floors.map((f) => (
             <button key={f} type="button" className={floor === f ? 'on' : ''} onClick={() => setFloor(String(f))} aria-pressed={floor === f}>
-              {copy.floors[f]}
+              {hall ? copy.floors[f] : (admin.floors.find((x) => x.index === f)?.name ?? String(f))}
             </button>
           ))}
-          <span className="divider" aria-hidden="true" />
-          {(['3d', '2d'] as const).map((m) => (
-            <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)} aria-pressed={mode === m}>
-              {copy.modes[m]}
-            </button>
-          ))}
-          {mode === '3d' && (
-            <button type="button" className={xray ? 'on' : ''} onClick={() => setXray(xray ? '0' : '1')} aria-pressed={xray}>
-              {copy.scene.xray}
-            </button>
+          {hall && (
+            <>
+              <span className="divider" aria-hidden="true" />
+              {(['3d', '2d'] as const).map((m) => (
+                <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)} aria-pressed={mode === m}>
+                  {copy.modes[m]}
+                </button>
+              ))}
+              {mode === '3d' && (
+                <button type="button" className={xray ? 'on' : ''} onClick={() => setXray(xray ? '0' : '1')} aria-pressed={xray}>
+                  {copy.scene.xray}
+                </button>
+              )}
+              <button type="button" className={liveOnly ? 'on' : ''} onClick={() => setLive(liveOnly ? '0' : '1')} aria-pressed={liveOnly}>
+                {copy.liveOnly}
+              </button>
+            </>
           )}
-          <button type="button" className={liveOnly ? 'on' : ''} onClick={() => setLive(liveOnly ? '0' : '1')} aria-pressed={liveOnly}>
-            {copy.liveOnly}
+          <span className="divider" aria-hidden="true" />
+          <button type="button" className={setup ? 'on' : ''} onClick={() => setView(setup ? 'map' : 'setup')} aria-pressed={setup}>
+            {copy.admin.setup}
           </button>
         </nav>
       </header>
 
-      <main className={`view-${view}`}>
+      <main className={`view-${setup ? 'map' : view}`}>
         {!isActive && <p className="banner">{connectionError ? copy.map.offline : copy.map.connecting}</p>}
-        {view === 'admin' ? (
-          <AdminPanel venueId={venueParam} onVenue={setVenue} floor={Number(floorParam) || 1} onFloor={(f) => setFloor(String(f))} />
+        {!hall ? (
+          (() => {
+            const current = admin.floors.find((f) => f.index === floor);
+            return current ? (
+              <FloorPlan floor={current} pins={admin.pins} dots={admin.dots} onClick={placing ? (x, y) => admin.place(x, y, floor) : undefined} />
+            ) : (
+              <figure className="map floor-plan">
+                <p className="hint">{copy.admin.floorsEmpty}</p>
+              </figure>
+            );
+          })()
         ) : mode === '3d' ? (
           <Suspense fallback={<figure className="map scene"><div className="scene-host" /></figure>}>
-            <VenueScene floor={floor} xray={xray} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} />
+            <VenueScene floor={floor === 2 ? 2 : 1} xray={xray} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} />
           </Suspense>
         ) : (
-          <VenueMap floor={floor} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} />
+          <VenueMap floor={floor === 2 ? 2 : 1} liveOnly={liveOnly} meId={me?.personId} selectedZone={zoneParam || undefined} onSelectZone={(z) => setZone(z ?? '')} selectedDevice={deviceParam || undefined} trail={trail} onSelectDevice={pickDevice} onPlanClick={placing ? admin.place : undefined} pins={setup ? admin.pins : []} />
         )}
-        {view !== 'admin' && (
-          <aside className="panel">
-            {view === 'map' && me && !me.visible && (
-              <p className="hint">
-                {copy.map.hidden}{' '}
-                <button type="button" className="link" onClick={() => setVisible({ visible: true })}>
-                  {copy.map.show}
-                </button>
-              </p>
-            )}
-            {view === 'map' && deviceParam && <DeviceSheet hash={deviceParam} onTrail={setTrail} onClose={() => pickDevice('')} />}
-            {view === 'map' && zoneParam && <ZoneCard zoneId={zoneParam} liveOnly={liveOnly} onClose={() => setZone('')} />}
-            {view === 'map' && zoneParam && health?.history && <ZoneHistory zoneId={zoneParam} />}
-            {view === 'map' && zoneParam && <ZoneDwell zoneId={zoneParam} />}
-            {view === 'me' && (
-              <>
-                <RegisterSheet />
-                <WalkEnrol />
-              </>
-            )}
-            {view === 'team' && <TeamPanel onSelectZone={showZone} onGoToMe={() => setView('me')} />}
-            {view === 'ask' && <AskBar enabled={health?.ask ?? true} voice={health?.voice ?? false} />}
-            {view === 'privacy' && <PrivacyPage mock={health?.mode?.includes('mock') ?? true} receipts={health?.ask ?? true} onGoToMe={() => setView('me')} />}
-            {(view === 'team' || view === 'ask') && <img className="art" src="/brand/bear-plane.png" alt="" aria-hidden="true" />}
-          </aside>
-        )}
+        {view === 'map' || setup ? panel : <aside className="panel">{panel}</aside>}
       </main>
     </div>
   );

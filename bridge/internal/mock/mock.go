@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"time"
 
 	"venuemap/bridge/internal/ingest"
@@ -72,6 +73,32 @@ type Mock struct {
 	tokenDir string
 	// Pairing demo: a phone that appears at a node once a session opens.
 	phantom map[int64]*walker
+	// attendees are the sample people's own clients, so their visibility
+	// can follow the switch.
+	attendees []*stdb.Client
+	disabled  atomic.Bool
+}
+
+// Enabled reports whether the crowd is being replayed right now.
+func (m *Mock) Enabled() bool { return !m.disabled.Load() }
+
+// SetEnabled pauses or resumes the crowd for every viewer. Turning it off
+// also removes what it already wrote and hides the sample attendees, so the
+// map and Ask show only real nodes straight away.
+func (m *Mock) SetEnabled(ctx context.Context, on bool) error {
+	if on == m.Enabled() {
+		return nil
+	}
+	m.disabled.Store(!on)
+	for _, pc := range m.attendees {
+		if err := pc.Call(ctx, "set_visible", on); err != nil {
+			return fmt.Errorf("set_visible: %w", err)
+		}
+	}
+	if on {
+		return nil
+	}
+	return m.client.Call(ctx, "clear_mock")
 }
 
 // New builds the crowd. With people set, the attendees in mock_attendees.json
@@ -129,6 +156,7 @@ func (m *Mock) Setup(ctx context.Context) error {
 		if err := pc.Call(ctx, "upsert_person", a.DisplayName, a.Team, a.Color); err != nil {
 			return fmt.Errorf("upsert_person %s: %w", a.DisplayName, err)
 		}
+		m.attendees = append(m.attendees, pc)
 	}
 	if b, err := json.Marshal(tokens); err == nil {
 		_ = os.WriteFile(tokPath, b, 0o600)
@@ -396,9 +424,15 @@ func (m *Mock) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case now := <-t.C:
+			if !m.Enabled() {
+				continue
+			}
 			m.step(now)
 			m.emit(now)
 		case <-poll.C:
+			if !m.Enabled() {
+				continue
+			}
 			m.servePairings(ctx)
 			m.serveWalks(ctx)
 		}

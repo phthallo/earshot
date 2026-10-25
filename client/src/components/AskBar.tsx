@@ -7,13 +7,15 @@ type Turn = { id: number; q: string; a?: string; err?: string };
 
 let nextTurnId = 1;
 
-export function AskBar({ enabled, voice }: { enabled: boolean; voice: boolean }) {
+// Sits in the map panel under the selected zone or phone. Only mounted when the bridge has Ask.
+export function AskBar({ voice, liveOnly }: { voice: boolean; liveOnly: boolean }) {
   const [q, setQ] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   // Mirrors `busy` for callbacks the voice socket captured in an older render.
   const busyRef = useRef(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
   const player = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => () => player.current?.pause(), []);
@@ -27,7 +29,7 @@ export function AskBar({ enabled, voice }: { enabled: boolean; voice: boolean })
     setBusy(true);
     setTurns((t) => [...t, { id, q: text }]);
     try {
-      const r = await api.ask(text);
+      const r = await api.ask(text, liveOnly);
       setTurns((t) => t.map((x) => (x.id === id ? { ...x, a: r.answer } : x)));
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : copy.errors.generic;
@@ -57,65 +59,69 @@ export function AskBar({ enabled, voice }: { enabled: boolean; voice: boolean })
     ask(q);
   }
 
-  if (!enabled) {
-    return (
-      <section className="sheet ask">
-        <h2>{copy.ask.title}</h2>
-        <p className="intro">{copy.ask.off}</p>
-        <p className="hint">{copy.ask.offDetail}</p>
-      </section>
-    );
-  }
-
+  // Laid out like a chat: the thread fills the card and the question box stays at the bottom.
   return (
     <section className="sheet ask">
       <h2>{copy.ask.title}</h2>
-      <form onSubmit={submit} className="askbar">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={copy.ask.placeholder} aria-label={copy.ask.title} />
-        {voice && (
-          <VoiceButton
-            onTranscript={(text, final) => {
-              setQ(text);
-              if (final) ask(text);
-            }}
-            onError={setVoiceError}
-          />
+      <div className="thread">
+        {turns.length === 0 && (
+          <>
+            <p className="hint">{copy.ask.intro}</p>
+            <ul className="examples">
+              {copy.ask.examples.map((ex) => (
+                <li key={ex}>
+                  <button type="button" className="link" onClick={() => ask(ex)}>
+                    {ex}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-        <button type="submit" className="primary" disabled={busy}>
-          {copy.ask.send}
-        </button>
-      </form>
-      {turns.length === 0 && (
-        <ul className="examples">
-          {copy.ask.examples.map((ex) => (
-            <li key={ex}>
-              <button type="button" className="link" onClick={() => ask(ex)}>
-                {ex}
-              </button>
+        <ol className="turns">
+          {turns.map((t) => (
+            <li key={t.id}>
+              <p className="q">{t.q}</p>
+              {t.a && (
+                <p className="a">
+                  {t.a}
+                  {voice && (
+                    <button type="button" className="quiet" onClick={() => speak(t.a!)}>
+                      {copy.ask.listen}
+                    </button>
+                  )}
+                </p>
+              )}
+              {t.err && <p className="warn">{t.err}</p>}
+              {!t.a && !t.err && <p className="muted">{copy.ask.thinking}</p>}
             </li>
           ))}
-        </ul>
-      )}
-      <ol className="turns">
-        {turns.map((t) => (
-          <li key={t.id}>
-            <p className="q">{t.q}</p>
-            {t.a && (
-              <p className="a">
-                {t.a}
-                {voice && (
-                  <button type="button" className="quiet" onClick={() => speak(t.a!)}>
-                    {copy.ask.listen}
-                  </button>
-                )}
-              </p>
-            )}
-            {t.err && <p className="warn">{t.err}</p>}
-            {!t.a && !t.err && <p className="muted">{copy.ask.thinking}</p>}
-          </li>
-        ))}
-      </ol>
-      {voiceError && <p className="warn" role="alert">{voiceError}</p>}
+        </ol>
+        {voiceError && <p className="warn" role="alert">{voiceError}</p>}
+      </div>
+      <form onSubmit={submit} className={listening ? 'askbar listening' : 'askbar'}>
+        {listening && (
+          <p className="hint listening-hint" role="status">
+            {copy.ask.listeningHint}
+          </p>
+        )}
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={copy.ask.placeholder} aria-label={copy.ask.title} />
+        <div className="row">
+          {voice && (
+            <VoiceButton
+              onTranscript={(text, final) => {
+                setQ(text);
+                if (final) ask(text);
+              }}
+              onListening={setListening}
+              onError={setVoiceError}
+            />
+          )}
+          <button type="submit" className="primary" disabled={busy}>
+            {copy.ask.send}
+          </button>
+        </div>
+      </form>
     </section>
   );
 }

@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { copy } from '../copy';
 
-type Props = { onTranscript: (text: string, final: boolean) => void; onError: (msg: string) => void };
+type Props = { onTranscript: (text: string, final: boolean) => void; onListening?: (on: boolean) => void; onError: (msg: string) => void };
 
 // Streams 16 kHz pcm_s16le from the microphone to the bridge, which relays
 // it to Cartesia Ink and returns transcripts.
-export function VoiceButton({ onTranscript, onError }: Props) {
+export function VoiceButton({ onTranscript, onListening, onError }: Props) {
   const [on, setOn] = useState(false);
+  useEffect(() => onListening?.(on), [on, onListening]);
   const starting = useRef(false);
   const ws = useRef<WebSocket | null>(null);
   const audio = useRef<{ ctx: AudioContext; stream: MediaStream; node: ScriptProcessorNode } | null>(null);
@@ -88,6 +89,7 @@ export function VoiceButton({ onTranscript, onError }: Props) {
 
   return (
     <button type="button" className={on ? 'mic on' : 'mic'} onClick={on ? stop : start} aria-pressed={on}>
+      {on && <span className="pulse" aria-hidden="true" />}
       {on ? copy.ask.stop : copy.ask.speak}
     </button>
   );

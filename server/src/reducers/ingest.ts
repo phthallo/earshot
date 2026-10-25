@@ -54,6 +54,19 @@ export const pushSightingsBatch = spacetimedb.reducer({ nodes: t.array(NodeSight
   }
 });
 
+// Drops everything the mock crowd wrote: activity and counts for nodes that
+// are not real hardware, and node placements of the sample attendees. Real
+// nodes are untouched. The bridge calls it when the simulated crowd is
+// switched off, so the map does not spend a minute fading to zero.
+export const clearMock = spacetimedb.reducer({}, (ctx) => {
+  requireIngest(ctx);
+  const mockNodes = new Set<number>();
+  for (const n of ctx.db.node.iter()) if (!n.isReal) mockNodes.add(n.nodeId);
+  for (const a of [...ctx.db.zoneActivity.iter()]) if (mockNodes.has(a.nodeId)) ctx.db.zoneActivity.nodeId.delete(a.nodeId);
+  for (const c of [...ctx.db.anonZoneCount.iter()]) if (c.source === 'mock') ctx.db.anonZoneCount.zoneId.delete(c.zoneId);
+  for (const p of [...ctx.db.position.iter()]) if (p.source === 'node' && mockNodes.has(p.nodeId)) ctx.db.position.personId.delete(p.personId);
+});
+
 const AnonPointIn = t.object('AnonPointIn', { floor: t.u8(), x: t.f32(), y: t.f32(), rssi: t.i16(), hue: t.u8(), hash: t.string(), stable: t.bool() });
 
 // Replaces the anonymous dots wholesale; the bridge sends a fresh set every

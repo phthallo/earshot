@@ -18,7 +18,25 @@ export function useNow(intervalMs = 1000): number {
   return now;
 }
 
-// URL search params as state: ?view=map&floor=2&zone=food
+// The pathname as state: /venues is the venues page, /venues/<id>[/me|/privacy|/setup] a venue's pages.
+// Navigating drops the search params, which belong to the page being left.
+export function usePath(): [string, (path: string) => void] {
+  const [path, setPath] = useState(() => location.pathname);
+  useEffect(() => {
+    const onPop = () => setPath(location.pathname);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  const go = (next: string) => {
+    const url = new URL(next, location.origin);
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    history.pushState(null, '', next);
+    setPath(url.pathname);
+  };
+  return [path, go];
+}
+
+// URL search params as state: ?floor=2&zone=food
 // Only `push` keys add history entries; the rest replace, so Back leaves the page in one press.
 export function useParam(key: string, fallback: string, push = false): [string, (v: string) => void] {
   const read = () => new URLSearchParams(location.search).get(key) ?? fallback;

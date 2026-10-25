@@ -1,6 +1,6 @@
 # Style guide
 
-The look comes from the landing page hero: a fluid gradient in deep navy and sky blue, a serif italic headline, and a grotesk for everything else. Every other surface uses the same tokens. They are declared in `client/public/landing/index.html` and `client/src/styles.css`.
+The look comes from the landing page hero: a fluid gradient in deep navy and sky blue, a serif italic headline, and a grotesk for everything else. Every other surface uses the same tokens. They are declared in `client/src/styles.css`; the landing page's own additions live in `client/src/landing.css`, scoped under `.landing`.
 
 ## Colour
 

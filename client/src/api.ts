@@ -35,7 +35,7 @@ const json = (data: unknown): RequestInit => ({
   body: JSON.stringify(data),
 });
 
-export type Health = { ok: boolean; mode: string; ask: boolean; voice: boolean; search: boolean; history: boolean };
+export type Health = { ok: boolean; mode: string; mock: boolean; mockAvailable: boolean; ask: boolean; voice: boolean; search: boolean; history: boolean };
 export type HistoryPoint = { t: string; phones: number; movement: number };
 export type ZoneDwell = { zoneId: string; unique: number; now: number; stays: number; medianStayMin: number };
 export type NodeHear = { nodeId: number; label: string; zoneId: string; rssi: number; ago: number };
@@ -87,6 +87,7 @@ export const api = {
   placeNode: (body: PlaceBody) => call<unknown>('/api/admin/nodes/place', withCookie(json(body))),
   rememberBoard: (mac: string, nodeId: number, venueId: string) => call<unknown>('/api/admin/boards', withCookie(json({ mac, nodeId, venueId }))),
   forgetBoard: (mac: string) => call<unknown>(`/api/admin/boards/${encodeURIComponent(mac)}`, withCookie({ method: 'DELETE' })),
+  setMock: (enabled: boolean) => call<{ enabled: boolean }>('/api/admin/mock', withCookie(json({ enabled }))),
   githubSignInUrl: () => `${BRIDGE_URL}/api/auth/github?return=${encodeURIComponent(location.href)}`,
   exportUrl: (venueId: string) => `${BRIDGE_URL}/api/venues/${encodeURIComponent(venueId)}/export`,
   history: (zoneId: string, hours: number) =>
@@ -98,7 +99,7 @@ export const api = {
       ...json({ mac }),
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
     }),
-  ask: (question: string) => call<{ answer: string }>('/api/ask', json({ question })),
+  ask: (question: string, liveOnly: boolean) => call<{ answer: string }>('/api/ask', json({ question, liveOnly })),
   receipt: (personId: number) => call<{ receipt: string }>(`/api/privacy-receipt?personId=${personId}`),
   pairCode: (identityHex: string, token: string) =>
     call<{ pairCode: string; personId: number }>(`/api/pair-code?identity=0x${identityHex}`, {

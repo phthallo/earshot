@@ -38,6 +38,8 @@ export function AdminPanel({ venueId, onVenue, floor, onFloor }: Props) {
   const [floorRows] = useTable(tables.floor);
   const [boardRows] = useTable(tables.board);
   const [venueNodes] = useTable(tables.venueNode);
+  const [anonPoints] = useTable(tables.anonPoint);
+  const dots = useMemo(() => anonPoints.filter((p) => p.venueId === venueId), [anonPoints, venueId]);
 
   const refresh = useCallback(async () => {
     try {
@@ -137,7 +139,7 @@ export function AdminPanel({ venueId, onVenue, floor, onFloor }: Props) {
       />
     );
   } else if (showPlan && currentFloor) {
-    plan = <FloorPlan floor={currentFloor} pins={pins} onClick={placing !== undefined ? (x, y) => place(x, y, currentFloor.index) : undefined} />;
+    plan = <FloorPlan floor={currentFloor} pins={pins} dots={dots} onClick={placing !== undefined ? (x, y) => place(x, y, currentFloor.index) : undefined} />;
   }
 
   return (

@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, type AdminFloor, type AdminVenue } from '../../api';
 import { copy } from '../../copy';
 import { ago, useNow } from '../../hooks';
+import { RelayKey } from './RelayKey';
 
 type Board = { mac: string; nodeId: number; flashedAt: Date };
 
@@ -136,6 +137,8 @@ export function VenuePage({ venue, floors, boards, floor, onFloor, nodeIds, plac
         )}
         {flash}
       </section>
+
+      <RelayKey venue={venue} onChanged={onChanged} />
 
       <section className="sheet">
         <h3>{copy.admin.placeTitle}</h3>

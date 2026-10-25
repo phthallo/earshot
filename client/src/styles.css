@@ -45,7 +45,7 @@
 html, body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--grot); font-size: 16px; line-height: 1.3; letter-spacing: -0.02em; }
 body { min-height: 100dvh; background-image: url('/brand/stars.png'); background-size: 1413px 816px; background-attachment: fixed; }
 
-button, input, select { font: inherit; color: inherit; letter-spacing: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -171,6 +171,8 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
 .floor-plan-box img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-select: none; }
 .floor-plan .pin { position: absolute; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--amber); background: rgba(231, 172, 102, 0.35); transform: translate(-50%, -50%); pointer-events: none; }
 .floor-plan .pin.pending { background: none; border-style: dashed; }
+.floor-plan .anon-dot { position: absolute; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--night); transform: translate(-50%, -50%); pointer-events: none; }
+.floor-plan .anon-dot.stable { border-color: var(--amber); border-width: 3px; }
 .floor-plan .pin b { position: absolute; top: 100%; left: 50%; transform: translate(-50%, 4px); font-size: 13px; color: var(--amber); text-shadow: 0 1px 2px var(--night), 0 0 6px var(--night); }
 
 .blip .star { fill: currentColor; stroke: var(--night); stroke-width: 0.5; }
@@ -260,9 +262,10 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-conten
 .stack { display: grid; gap: 12px; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 label { display: grid; gap: 4px; font-weight: 700; font-size: 14px; color: var(--ink-2); }
-input, select { font-weight: 400; background: var(--field); border: 1.5px solid var(--field-border); border-radius: var(--radius); padding: 10px 14px; min-height: 44px; min-width: 0; color: var(--ink); }
+input, select, textarea { font-weight: 400; background: var(--field); border: 1.5px solid var(--field-border); border-radius: var(--radius); padding: 10px 14px; min-height: 44px; min-width: 0; color: var(--ink); }
 input::placeholder { color: var(--ink-3); }
-input:focus-visible, select:focus-visible { outline-color: var(--blue); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: var(--blue); }
+textarea.mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 14px; resize: none; word-break: break-all; }
 .row label { flex: 1 1 160px; }
 
 /* Buttons follow the site's two pills: light blue filled for the main action,

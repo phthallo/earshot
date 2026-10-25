@@ -159,7 +159,8 @@ export function VenueMap({ floor, liveOnly, meId, selectedZone, onSelectZone, se
     (p) => p.floor === floor && (personById.get(p.personId)?.visible ?? false) && (!liveOnly || p.source === 'app' || isRealNode(p.nodeId)),
   );
 
-  const dots = anonPoints.filter((p) => p.floor === floor);
+  // Other venues' phones belong on their uploaded plans, not the hall.
+  const dots = anonPoints.filter((p) => p.floor === floor && (p.venueId === 'calhacks' || p.venueId === ''));
   const floorTrail = trail.filter((s) => s.floor === floor);
   const view = usePanZoom(PLAN_WIDTH, PLAN_HEIGHT);
   const floorPins = pins.filter((p) => p.floor === floor);

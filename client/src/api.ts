@@ -63,7 +63,8 @@ const withCookie = (init: RequestInit = {}): RequestInit => ({ ...init, credenti
 
 export type Me = { login: string; avatarUrl: string; provider: 'github' | 'local' };
 export type AdminFloor = { floorKey: string; venueId: string; index: number; name: string; imageUrl: string; width: number; height: number };
-export type AdminVenue = { venueId: string; name: string; ownerLogin: string };
+export type AdminVenue = { venueId: string; name: string; ownerLogin: string; hasKey: boolean };
+export type RelayKey = { key: string; command: string };
 export type PlaceBody = { nodeId: number; venueId: string; floor: number; x: number; y: number; label?: string };
 
 export const api = {
@@ -82,6 +83,7 @@ export const api = {
     form.set('image', image);
     return call<AdminFloor>(`/api/admin/venues/${encodeURIComponent(venueId)}/floors`, withCookie({ method: 'POST', body: form }));
   },
+  rotateKey: (venueId: string) => call<RelayKey>(`/api/admin/venues/${encodeURIComponent(venueId)}/key`, withCookie({ method: 'POST' })),
   placeNode: (body: PlaceBody) => call<unknown>('/api/admin/nodes/place', withCookie(json(body))),
   rememberBoard: (mac: string, nodeId: number, venueId: string) => call<unknown>('/api/admin/boards', withCookie(json({ mac, nodeId, venueId }))),
   forgetBoard: (mac: string) => call<unknown>(`/api/admin/boards/${encodeURIComponent(mac)}`, withCookie({ method: 'DELETE' })),

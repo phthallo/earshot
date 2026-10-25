@@ -35,6 +35,9 @@ export const venue = table(
     name: t.string(),
     ownerLogin: t.string(),
     createdAt: t.timestamp(),
+    // SHA-256 hex of the relay key a venue's relay sends on connect; '' when none was made.
+    // The key itself is shown once in the admin page and never stored.
+    ingestKeyHash: t.string().default(''),
   }
 );
 
@@ -122,6 +125,8 @@ export const anonPoint = table(
     // The phone sent a factory address rather than one made up for this
     // network, so the same dot can be followed across networks and days.
     stable: t.bool().default(false),
+    // Which venue's nodes heard the phone; each push replaces one venue's dots only.
+    venueId: t.string().default(''),
   }
 );
 

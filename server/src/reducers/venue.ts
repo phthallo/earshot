@@ -57,11 +57,18 @@ export const upsertVenue = spacetimedb.reducer(
     requireIngest(ctx);
     const existing = ctx.db.venue.venueId.find(venueId);
     if (existing && existing.ownerLogin !== ownerLogin) throw new SenderError(`venue ${venueId} belongs to someone else`);
-    const row = { venueId, name, ownerLogin, createdAt: existing?.createdAt ?? ctx.timestamp };
+    const row = { venueId, name, ownerLogin, createdAt: existing?.createdAt ?? ctx.timestamp, ingestKeyHash: existing?.ingestKeyHash ?? '' };
     if (existing) ctx.db.venue.venueId.update(row);
     else ctx.db.venue.insert(row);
   }
 );
+
+export const setVenueKey = spacetimedb.reducer({ venueId: t.string(), keyHash: t.string() }, (ctx, { venueId, keyHash }) => {
+  requireIngest(ctx);
+  const v = ctx.db.venue.venueId.find(venueId);
+  if (!v) throw new SenderError(`no venue ${venueId}`);
+  ctx.db.venue.venueId.update({ ...v, ingestKeyHash: keyHash });
+});
 
 export const upsertFloor = spacetimedb.reducer(
   { venueId: t.string(), index: t.u8(), name: t.string(), imageUrl: t.string(), width: t.f32(), height: t.f32() },

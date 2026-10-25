@@ -83,7 +83,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .scene-host canvas { display: block; width: 100% !important; height: 100% !important; cursor: grab; }
 .scene-host canvas:active { cursor: grabbing; }
 .scene-host canvas:focus-visible { outline: 2px solid var(--sky); outline-offset: -2px; }
-.scene-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+/* isolation keeps the per-label z-indexes the renderer sets inside this layer, under the sheet. */
+.scene-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; isolation: isolate; }
 .scene-zone, .scene-person, .scene-room { font-weight: 700; white-space: nowrap; letter-spacing: -0.03em; text-shadow: 0 1px 2px var(--night), 0 0 6px var(--night); }
 .scene-room { font-size: 11px; color: var(--ink-3); text-transform: uppercase; }
 .scene-room.faded { opacity: 0.35; }
@@ -407,6 +408,12 @@ input[type='file'] { padding: 8px 10px; }
   .view-map .side.right .panel { order: -1; }
   .view-map .side .panel { position: relative; inset: auto; flex: none; max-height: none; overflow: visible; border-radius: 16px; padding-top: 24px; }
   .view-map .side .panel { margin: 0 8px; border: 1px solid var(--hairline); }
+  /* A folded card is its title under the handle; the rest of the card and any sheet below it are gone. */
+  .view-map .side .panel.folded { padding-bottom: 12px; cursor: pointer; }
+  .view-map .side .panel.folded .sheet > :not(h2, .zone-head), .view-map .side .panel.folded .zone-head > :not(h2), .view-map .side .panel.folded .sheet + .sheet { display: none; }
+  .view-map .side .panel.folded .sheet { padding: 0; }
+  .view-map .side .panel.folded .sheet h2 { margin: 0; font-size: 1.35rem; }
+  .view-map .side .panel.folded .zone-head { justify-content: center; }
   .view-map .panel .sheet h2 { color: var(--ink); }
   .view-map .panel .sheet h3 { border-color: var(--sky); color: var(--sky); }
   .view-map .panel .link, .view-map .panel details summary { color: var(--sky-2); }

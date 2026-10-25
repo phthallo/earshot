@@ -131,6 +131,7 @@ export const copy = {
 
   cards: {
     move: 'Drag to move, or tap to switch sides',
+    fold: 'Tap to open or close',
   },
 
   map: {
